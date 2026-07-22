@@ -1,0 +1,10 @@
+# This file is machine-generated - editing it directly is not advised
+
+julia_version = "1.12.5"
+manifest_format = "2.0"
+project_hash = "bd83b32727f19c0ca8a913c1ce001c36daca17ee"
+
+[[deps.AdvDiffMetricGraphs]]
+path = "."
+uuid = "5db9d257-df2b-4bc8-b25b-4700b2107635"
+version = "1.0.0-DEV"
