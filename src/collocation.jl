@@ -673,7 +673,7 @@ end
 
 
 """
-    plot_convergence_rates_trig(; p_degree=5, J_range=2:6)
+    plot_convergence_rates_trig(; p_degree=5, J_range=2:6,do_plots=false)
 
 Executes a full convergence analysis and plots the resulting Sobolev errors over the step size grid. Uses the test case `testcase_star_trig` for the star graph geometry with trigonometric functions.
 Saves the resulting plot as a PDF file in the current working directory.
@@ -681,12 +681,12 @@ Saves the resulting plot as a PDF file in the current working directory.
 # Arguments
 - `p_degree::Int`: B-spline polynomial degree (default: 5).
 - `J_range`: Range of refinement levels (default: 2:6).
+- `do_plots::Bool`: Flag to enable or disable plotting (default: false).
 
 # Output:
 - `Tuple{Vector{Float64}, Matrix{Float64}, Plots.Plot}`: Generated step sizes, corresponding error matrix, and the plot object.
 """
-function plot_convergence_rates_trig(; p_degree=5, J_range=2:6)
-    println("Starting convergence analysis for p = $p_degree ...")
+function plot_convergence_rates_trig(; p_degree=5, J_range=2:6, do_plots=false)
     
     N_values = [2^J for J in J_range]
     h_vals   = Float64[]
@@ -720,49 +720,50 @@ function plot_convergence_rates_trig(; p_degree=5, J_range=2:6)
 
         err_matrix[i, :] .= Winf_err_semi
     end
+    plt = nothing
+    if do_plots
+        plt = plot(
+            xaxis = :log10, yaxis = :log10,
+            xlabel = "Step size h",
+            ylabel = "Sobolev Error W^{k, ∞}",
+            title  = "Coupled B-Spline Collocation (p=$p_degree, Star Graph)",
+            legend = :bottomright, grid = true, linewidth = 2, size = (850, 520), leftmargin=5Plots.mm
+        )
 
-    plt = plot(
-        xaxis = :log10, yaxis = :log10,
-        xlabel = "Step size h",
-        ylabel = "Sobolev Error W^{k, ∞}",
-        title  = "Coupled B-Spline Collocation (p=$p_degree, Star Graph)",
-        legend = :bottomright, grid = true, linewidth = 2, size = (850, 520), leftmargin=5Plots.mm
-    )
+        markers = [:circle, :square, :diamond, :utriangle, :dtriangle, :star5, :hexagon]
+        cols    = palette(:tab10)
 
-    markers = [:circle, :square, :diamond, :utriangle, :dtriangle, :star5, :hexagon]
-    cols    = palette(:tab10)
+        for k in 0:p_degree
+            m = mod1(k+1, length(markers))
+            c = mod1(k+1, length(cols))
 
-    for k in 0:p_degree
-        m = mod1(k+1, length(markers))
-        c = mod1(k+1, length(cols))
-
-        plot!(plt, h_vals, err_matrix[:, k+1],
-            marker = markers[m], color = cols[c],
-            label  = "|u^($k)|_∞",  lw = 2, markersize = 5)
--
-        if k == 0 || k == 1
-            if isodd(p_degree)
-                r = p_degree - 1
-            else # p_degree is even
-                r = p_degree
+            plot!(plt, h_vals, err_matrix[:, k+1],
+                marker = markers[m], color = cols[c],
+                label  = "|u^($k)|_∞",  lw = 2, markersize = 5)
+    -
+            if k == 0 || k == 1
+                if isodd(p_degree)
+                    r = p_degree - 1
+                else # p_degree is even
+                    r = p_degree
+                end
+            else # 2 <= k <= p
+                r = p_degree + 1 - k
             end
-        else # 2 <= k <= p
-            r = p_degree + 1 - k
+            
+            if r > 0
+                offset = 0.5
+                ref = (h_vals ./ h_vals[1]).^r .* (err_matrix[1, k+1] * offset)
+                plot!(plt, h_vals, ref,
+                    linestyle = :dash, color = cols[c], alpha = 0.6,
+                    label = "O(h^$r)", lw = 1.5)
+            end
         end
-        
-        if r > 0
-            offset = 0.5
-            ref = (h_vals ./ h_vals[1]).^r .* (err_matrix[1, k+1] * offset)
-            plot!(plt, h_vals, ref,
-                linestyle = :dash, color = cols[c], alpha = 0.6,
-                label = "O(h^$r)", lw = 1.5)
-        end
-    end
 
-    if !isdir(joinpath("Figures", "plot_convergence_rates_trig"))
-        mkdir(joinpath("Figures", "plot_convergence_rates_trig"))
+        if !isdir(joinpath("Figures", "plot_convergence_rates_trig"))
+            mkdir(joinpath("Figures", "plot_convergence_rates_trig"))
+        end
+        savefig(plt, joinpath("Figures", "plot_convergence_rates_trig", "collocation_star_trig_convergence_$p_degree.pdf"))
     end
-    savefig(plt, joinpath("Figures", "plot_convergence_rates_trig", "collocation_star_trig_convergence_$p_degree.pdf"))
-    
     return h_vals, err_matrix, plt
 end

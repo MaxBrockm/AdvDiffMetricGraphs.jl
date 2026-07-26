@@ -161,28 +161,30 @@ end
 
 
 """
-    Multigrid_Graph(HEE, HEV, HVE, HVV, Levels, J, fv, fe, uv, ue, M, Scale_HEV, v1, v2, w, my, G, A_vec, macroscopic_order, ILU_cache)
+    Multigrid_Graph_adv(HEE::AbstractMatrix{<:Real}, HEV::AbstractMatrix{<:Real}, HVE::AbstractMatrix{<:Real}, HVV::AbstractMatrix{<:Real}, Levels::AbstractVector{Int}, J::Int, fv::AbstractVector{<:Real}, fe::AbstractVector{<:Real}, uv::AbstractVector{<:Real}, ue::AbstractVector{<:Real}, M::Int, Scale_HEV::AbstractMatrix{<:Real}, v1::Int, v2::Int, w::Float64, my::Int, G::SimpleDiGraph, A_vec::Vector{Float64}, macroscopic_order::Union{Nothing, Vector{Int}}, ILU_cache::Union{Nothing, Dict{Int, Tuple{SparseMatrixCSC, Any}}})
 
 Executes a single multigrid cycle for advection-diffusion problems.
 
 # Arguments
 - `HEE`, `HEV`, `HVE`, `HVV`: System block matrices.
-- `Levels`, `J`: Discretization vectors and current hierarchy depth.
+- `Levels`: Discretization vectors.
+- `J`: Current hierarchy depth.
 - `fv`, `fe`: Right-hand side vectors.
 - `uv`, `ue`: Current solution approximations.
 - `M`: Number of edges.
 - `Scale_HEV`: Scale matrix (maintained for legacy signatures).
 - `v1`, `v2`: Pre- and post-smoothing steps.
-- `w`, `my`: Relaxation parameter and cycle type.
+- `w`: Relaxation parameter.
+- `my`: Cycle type (e.g., 1 for V-cycle, 2 for W-cycle).
 - `G`: Directed graph structure.
 - `A_vec`: Advection coefficients.
 - `macroscopic_order`: Topological sort for DGS.
 - `ILU_cache`: Dictionary storing precomputed ILU factorizations.
 
-# Output:
+# Returns
 - `Tuple{Vector{Float64}, Vector{Float64}}`: Smoothed approximations `(ue, uv)`.
 """
-function Multigrid_Graph(HEE::AbstractMatrix{<:Real},
+function Multigrid_Graph_adv(HEE::AbstractMatrix{<:Real},
         HEV::AbstractMatrix{<:Real}, 
         HVE::AbstractMatrix{<:Real}, 
         HVV::AbstractMatrix{<:Real},
@@ -238,12 +240,12 @@ function Multigrid_Graph(HEE::AbstractMatrix{<:Real},
                 v_tilde_v = zeros(size(fv_m1))
 
                 if J == 1
-                        v_tilde_e, v_tilde_v = Multigrid_Graph(HEE_m1, HEV_m1, HVE_m1, HVV_m1,
+                        v_tilde_e, v_tilde_v = Multigrid_Graph_adv(HEE_m1, HEV_m1, HVE_m1, HVV_m1,
                                 max.(Levels .- 1, 0), J - 1, fv_m1, fe_m1, v_tilde_v, v_tilde_e,
                                 M, Scale_HEV, v1, v2, w, 1, G, A_vec, macroscopic_order, ILU_cache) 
                 else
                         for i in 1:my
-                                v_tilde_e, v_tilde_v = Multigrid_Graph(HEE_m1, HEV_m1, HVE_m1, HVV_m1,
+                                v_tilde_e, v_tilde_v = Multigrid_Graph_adv(HEE_m1, HEV_m1, HVE_m1, HVV_m1,
                                         max.(Levels .- 1, 0), J - 1, fv_m1, fe_m1, v_tilde_v, v_tilde_e,
                                         M, Scale_HEV, v1, v2, w, my, G, A_vec, macroscopic_order, ILU_cache)
                         end

@@ -23,7 +23,7 @@ end
 
 
 """
-    MG_example_stargraph(v1::Int, v2::Int;do_plots=false)
+    MG_example_stargraph(v1::Int, v2::Int; do_plots=false)
 
 Executes a multigrid solver example on a star graph topology for the diffusion-reaction equation.
 Calculates and plots convergence rates as well as absolute pointwise errors in 3D.
@@ -37,9 +37,8 @@ Calculates and plots convergence rates as well as absolute pointwise errors in 3
 - `ue::Vector{Float64}`: Final numerical solution on the internal edge nodes.
 - `uv::Vector{Float64}`: Final numerical solution on the graph vertices.
 """
-function MG_example_stargraph(v1::Int, v2::Int;do_plots=false)
+function MG_example_stargraph(v1::Int, v2::Int; do_plots=false)
 
-    #Set up of graph and definition of variables
     Γ = star_graph(4)
     Levels = 10 * ones(Int, ne(Γ))
     J = 10
@@ -48,7 +47,6 @@ function MG_example_stargraph(v1::Int, v2::Int;do_plots=false)
 
     nem1 = 2^J - 1
 
-    # Create submatrices of H and right hand side
     HEE, HEV, HVV = createH(Γ, Levels, edgelength, Pot)
 
     f_exakt(x, k, Pot) = (
@@ -121,12 +119,8 @@ function MG_example_stargraph(v1::Int, v2::Int;do_plots=false)
         end
         savefig(Plot_Res, joinpath("Figures", "MG_example_stargraph", "convergencestargraph.pdf"))
 
-        # Plot errors
         Plot_err = plot(1:1:kmax, [L2_error, H1_error], label=[L"$L_2$-error" L"$H^1$-error"], ylabel="error",
             xlabel="cycle", title=L"$L_2/H^1$-norm of error", lw=5, tickfontsize=8, yaxis=:log, dpi=1200,legendfontsize=16)
-        if !isdir(joinpath("Figures", "MG_example_stargraph"))
-            mkdir(joinpath("Figures", "MG_example_stargraph"))
-        end
         savefig(Plot_err, joinpath("Figures", "MG_example_stargraph", "L2_H1_error.pdf"))
 
         ue_split = Vector{Any}(undef, ne(Γ))
@@ -166,12 +160,10 @@ function MG_example_stargraph(v1::Int, v2::Int;do_plots=false)
         end
 
         plt_err_graph = plot_graph_3d(Γ, edgelength, coords_v, ue_err_split, uv_err, 2 .^ Levels .- 1)
-
         savefig(plt_err_graph, joinpath("Figures", "MG_example_stargraph", "error_3D_stargraph.pdf"))
 
         plt_exact_graph = plot_graph_3d(Γ, edgelength, coords_v, ue_split, uv_exakt, 2 .^ Levels .- 1)
         title!(plt_exact_graph, "Exact solution on the graph")
-
         savefig(plt_exact_graph, joinpath("Figures", "MG_example_stargraph", "exact_solution_stargraph.pdf"))
     end
     return ue, uv
@@ -179,19 +171,21 @@ end
 
 
 """
-    MG_example_Barabasi(v1::Int, v2::Int)
+    MG_example_Barabasi(v1::Int, v2::Int; nodes::Int=5000, do_plots=false)
 
 Executes a multigrid solver example on a large Barabási-Albert graph with uniform edge discretization rules to solve the diffusion-reaction equation. For reproducability the random seed is set to 1.
 
 # Arguments
 - `v1::Int`: Number of pre-smoothing steps.
 - `v2::Int`: Number of post-smoothing steps.
+- `nodes::Int`: Number of nodes in the graph (default: 5000).
+- `do_plots::Bool`: Flag to enable or disable plotting (default: false).
 
 # Output
 - `ue::Vector{Float64}`: Solution vector for the internal edge nodes.
 - `uv::Vector{Float64}`: Solution vector for the graph vertices.
 """
-function MG_example_Barabasi(v1, v2; nodes::Int=5000)
+function MG_example_Barabasi(v1, v2; nodes::Int=5000, do_plots=false)
 
     Γ = barabasi_albert(nodes, 13, complete=true, seed=1)
 
@@ -231,14 +225,16 @@ function MG_example_Barabasi(v1, v2; nodes::Int=5000)
         kmax += 1
     end
 
-    Plot_Res = plot(2:1:kmax, [rate_vec[2:end] ./ rate_vec[1:end-1], rate_e_vec[2:end] ./ rate_e_vec[1:end-1],
-            rate_v_vec[2:end] ./ rate_v_vec[1:end-1]],
-        label=["convergance rate" "rate on internal vertices" "rate on vertices"], xlabel="cycle", ylabel="convergence rate",
-        title="Number of MG-cycles: $kmax", legend=:topleft, lw=5, tickfontsize=8, ylims = (0.05, 0.075), linestyle=[:solid :dash :dash], dpi=1200,legendfontsize=16)
-    if !isdir(joinpath("Figures", "MG_example_Barabasi"))
-        mkdir(joinpath("Figures", "MG_example_Barabasi"))
+    if do_plots
+        Plot_Res = plot(2:1:kmax, [rate_vec[2:end] ./ rate_vec[1:end-1], rate_e_vec[2:end] ./ rate_e_vec[1:end-1],
+                rate_v_vec[2:end] ./ rate_v_vec[1:end-1]],
+            label=["convergence rate" "rate on internal vertices" "rate on vertices"], xlabel="cycle", ylabel="convergence rate",
+            title="Number of MG-cycles: $kmax", legend=:topleft, lw=5, tickfontsize=8, ylims = (0.05, 0.075), linestyle=[:solid :dash :dash], dpi=1200,legendfontsize=16)
+        if !isdir(joinpath("Figures", "MG_example_Barabasi"))
+            mkdir(joinpath("Figures", "MG_example_Barabasi"))
+        end
+        savefig(Plot_Res, joinpath("Figures", "MG_example_Barabasi", "convergencebarabasi.pdf"))
     end
-    savefig(Plot_Res, joinpath("Figures", "MG_example_Barabasi", "convergencebarabasi.pdf"))
     return ue, uv
 end
 
@@ -310,39 +306,42 @@ end
 
 
 """
-    MG_example_Barabasi_extended(v1::Int, v2::Int)
+    MG_example_Barabasi_extended(v1::Int, v2::Int; do_plots=false)
 
 Evaluates and outputs performance metrics of the multigrid algorithm over multiple configurations of the Barabási-Albert graph (varying node count and refinement levels).
 
 # Arguments
 - `v1::Int`: Number of pre-smoothing iterations.
 - `v2::Int`: Number of post-smoothing iterations.
+- `do_plots::Bool`: Flag to enable or disable plotting (default: false).
 
 # Output
 - `table_data::Matrix`: Formatted experimental data displaying performance, complexity, and computation time.
 """
-function MG_example_Barabasi_extended(v1::Int, v2::Int)
+function MG_example_Barabasi_extended(v1::Int, v2::Int; do_plots=false)
     Random.seed!(1)
     kmax_base, _, _, rate_vec, rate_e_vec, rate_v_vec, _, _ = run_MG_barabasi(5000, 8, v1, v2)
 
-    Plot_Res = plot(
-            2:1:kmax_base, [rate_vec[2:end] ./ rate_vec[1:end-1], 
-            rate_e_vec[2:end] ./ rate_e_vec[1:end-1],
-            rate_v_vec[2:end] ./ rate_v_vec[1:end-1]],
-            label=["convergence rate" "rate on internal vertices" "rate on vertices"], 
-            xlabel="cycle", ylabel="convergence rate",
-            title="Number of MG-cycles: $kmax_base", 
-            legend=:topleft, 
-            lw=3, tickfontsize=8, 
-            linestyle=[:solid :dash :dash], 
-            dpi=1200, 
-            legendfontsize=10
-        )
-    if !isdir(joinpath("Figures", "MG_example_Barabasi_extended"))
-        mkdir(joinpath("Figures", "MG_example_Barabasi_extended"))
+    if do_plots
+        Plot_Res = plot(
+                2:1:kmax_base, [rate_vec[2:end] ./ rate_vec[1:end-1], 
+                rate_e_vec[2:end] ./ rate_e_vec[1:end-1],
+                rate_v_vec[2:end] ./ rate_v_vec[1:end-1]],
+                label=["convergence rate" "rate on internal vertices" "rate on vertices"], 
+                xlabel="cycle", ylabel="convergence rate",
+                title="Number of MG-cycles: $kmax_base", 
+                legend=:topleft, 
+                lw=3, tickfontsize=8, 
+                linestyle=[:solid :dash :dash], 
+                dpi=1200, 
+                legendfontsize=10
+            )
+        if !isdir(joinpath("Figures", "MG_example_Barabasi_extended"))
+            mkdir(joinpath("Figures", "MG_example_Barabasi_extended"))
+        end
+        savefig(Plot_Res, joinpath("Figures", "MG_example_Barabasi_extended", "convergencebarabasi_extended.pdf"))
     end
-    savefig(Plot_Res, joinpath("Figures", "MG_example_Barabasi_extended", "convergencebarabasi_extended.pdf"))
-  
+
     configs = [
         (2000, 8),
         (2000, 10),
@@ -381,17 +380,20 @@ function MG_example_Barabasi_extended(v1::Int, v2::Int)
         fit_table_in_display_vertically=false,
         fit_table_in_display_horizontally=false
     )
-        return table_data
+    return table_data
 end
 
 
 """
-    MG_examples_varying_parameters()
+    MG_examples_varying_parameters(; do_plots=false)
 
 Generates numerical results for the multigrid method evaluating varying smoothing
 parameters (μ, ν_1, ν_2). Evaluates on a Barabási-Albert graph configuration and plots convergence metrics.
+
+# Arguments
+- `do_plots::Bool`: Flag to enable or disable plotting (default: false).
 """
-function MG_examples_varying_parameters()
+function MG_examples_varying_parameters(; do_plots=false)
     Γ = barabasi_albert(2500, 13, complete=true, seed=1)
 
     Levels = repeat([6, 7], floor(Int, ne(Γ) / 2))
@@ -466,28 +468,34 @@ function MG_examples_varying_parameters()
                 else
                     ticksvec = 2:1:kmax
                 end
-                if count == length(set)
-                    Plot_Res = plot(2:1:kmax, [rate_vec[2:end] ./ rate_vec[1:end-1], rate_e_vec[2:end] ./ rate_e_vec[1:end-1],
-                            rate_v_vec[2:end] ./ rate_v_vec[1:end-1]],
-                        label=["convergence rate" "rate on internal vertices" "rate on vertices"],
-                        title=L"$\nu_1$: %$v1; $\nu_2$: %$v2 - %$mu_s-cycles: %$kmax",
-                        legend=:topleft, lw=5, tickfontsize=14, ylims=(0, lim_y), titlefontsize=20,
-                        legendfontsize=16, xticks=ticksvec, linestyle=[:solid :dash :dash], dpi=1200)
-                else
-                    Plot_Res = plot(2:1:kmax, [rate_vec[2:end] ./ rate_vec[1:end-1], rate_e_vec[2:end] ./ rate_e_vec[1:end-1],
-                            rate_v_vec[2:end] ./ rate_v_vec[1:end-1]],
-                        title=L"$\nu_1$: %$v1; $\nu_2$: %$v2 - %$mu_s-cycles: %$kmax",
-                        legend=false, lw=5, tickfontsize=14, ylims=(0, lim_y),
-                        titlefontsize=20, xticks=ticksvec, linestyle=[:solid :dash :dash], dpi=1200)
+                
+                if do_plots
+                    if count == length(set)
+                        Plot_Res = plot(2:1:kmax, [rate_vec[2:end] ./ rate_vec[1:end-1], rate_e_vec[2:end] ./ rate_e_vec[1:end-1],
+                                rate_v_vec[2:end] ./ rate_v_vec[1:end-1]],
+                            label=["convergence rate" "rate on internal vertices" "rate on vertices"],
+                            title=L"$\nu_1$: %$v1; $\nu_2$: %$v2 - %$mu_s-cycles: %$kmax",
+                            legend=:topleft, lw=5, tickfontsize=14, ylims=(0, lim_y), titlefontsize=20,
+                            legendfontsize=16, xticks=ticksvec, linestyle=[:solid :dash :dash], dpi=1200)
+                    else
+                        Plot_Res = plot(2:1:kmax, [rate_vec[2:end] ./ rate_vec[1:end-1], rate_e_vec[2:end] ./ rate_e_vec[1:end-1],
+                                rate_v_vec[2:end] ./ rate_v_vec[1:end-1]],
+                            title=L"$\nu_1$: %$v1; $\nu_2$: %$v2 - %$mu_s-cycles: %$kmax",
+                            legend=false, lw=5, tickfontsize=14, ylims=(0, lim_y),
+                            titlefontsize=20, xticks=ticksvec, linestyle=[:solid :dash :dash], dpi=1200)
+                    end
+                    push!(plotvec, Plot_Res)
                 end
-                push!(plotvec, Plot_Res)
             end
-            Plot_ges = plot(plotvec..., size=(450 * length(set), 650),
-                layout=(1, length(set)), margin=5Plots.mm, dpi=1200)
-            if !isdir(joinpath("Figures", "MG_examples_varying_parameters"))
-                mkdir(joinpath("Figures", "MG_examples_varying_parameters"))
+            
+            if do_plots
+                Plot_ges = plot(plotvec..., size=(450 * length(set), 650),
+                    layout=(1, length(set)), margin=5Plots.mm, dpi=1200)
+                if !isdir(joinpath("Figures", "MG_examples_varying_parameters"))
+                    mkdir(joinpath("Figures", "MG_examples_varying_parameters"))
+                end
+                savefig(Plot_ges, joinpath("Figures", "MG_examples_varying_parameters", "vergleichsplots$mu$savez.pdf"))
             end
-            savefig(Plot_ges, joinpath("Figures", "MG_examples_varying_parameters", "vergleichsplots$mu$savez.pdf"))
         end
     end
 end
@@ -497,7 +505,6 @@ end
     PCG_example()
 
 Compares standard Conjugate Gradient (CG) performance versus Preconditioned Conjugate Gradient (PCG) applied to the Schur complement formulation on a Barabási-Albert graph.
-
 """
 function PCG_example()
 
@@ -543,19 +550,20 @@ end
 
 
 """
-    MG_example_AdvectionDiffusion(v1::Int=3, v2::Int=3)
+    MG_example_AdvectionDiffusion(v1::Int=3, v2::Int=3; do_plots=false)
 
 Testcase demonstrating the multigrid approach applied to the advection-diffusion equation on a star graph. Utilizes SUPG stabilization, matrix-dependent intergrid operators, and appropriate GMRES smoothing for asymmetric systems.
 
 # Arguments
 - `v1::Int`: Number of pre-smoothing steps (default: 3).
 - `v2::Int`: Number of post-smoothing steps (default: 3).
+- `do_plots::Bool`: Flag to enable or disable plotting (default: false).
 
 # Output
 - `ue::Vector{Float64}`: Solution vector for the internal edge nodes.
 - `uv::Vector{Float64}`: Solution vector for the graph vertices.
 """
-function MG_example_AdvectionDiffusion(v1::Int=3, v2::Int=3)
+function MG_example_AdvectionDiffusion(v1::Int=3, v2::Int=3; do_plots=false)
 
     Γ = reverse(star_digraph(4))
     J = 8
@@ -618,77 +626,80 @@ function MG_example_AdvectionDiffusion(v1::Int=3, v2::Int=3)
         kmax += 1 
         
         if kmax % 5 == 0
-            println("Cycle $kmax: residual = $res_total")
+            println("Cycle $kmax: Residual = $res_total")
         end
     end
 
-    Plot_Res = plot(2:1:kmax, [rate_vec[2:end] ./ rate_vec[1:end-1], rate_e_vec[2:end] ./ rate_e_vec[1:end-1], 
-            rate_v_vec[2:end] ./ rate_v_vec[1:end-1]], 
-        label=["Overall rate" "Rate internal nodes" "Rate vertices"], xlabel="cycle", ylabel="Convergence rate", 
-        title="Advection-Diffusion MG cycles: $kmax", legend=:topright, lw=3, tickfontsize=8, linestyle=[:solid :dash :dash], dpi=300) 
-    
-    if !isdir(joinpath("Figures", "MG_example_AdvectionDiffusion"))
-        mkdir(joinpath("Figures", "MG_example_AdvectionDiffusion"))
-    end
-    savefig(Plot_Res, joinpath("Figures", "MG_example_AdvectionDiffusion", "convergence_advection_diffusion.pdf"))
-    int_nodes = max.(2 .^ Levels .- 1, 0)
-
-    ue_split = Array{Any}(undef, ne(Γ))
-    lgt = 1
-    for j = 1:ne(Γ)
-        ue_split[j] = ue[lgt : lgt + int_nodes[j] - 1]
-        lgt += int_nodes[j]
-    end
-
-    coords_v = Vector{Vector{Float64}}(undef, nv(Γ))
-    coords_v[1] = [0.0, 0.0] 
-    
-    N_orig = 4
-    for i in 2:N_orig
-        angle = 2 * pi * (i - 2) / (N_orig - 1)
-        r = edgelength[i-1]
-        coords_v[i] = [r * cos(angle), r * sin(angle)]
-    end
-    
-    for i in (N_orig + 1):nv(Γ)
-        p_node = all_neighbors(Γ, i)[1]
+    if do_plots
+        Plot_Res = plot(2:1:kmax, [rate_vec[2:end] ./ rate_vec[1:end-1], rate_e_vec[2:end] ./ rate_e_vec[1:end-1], 
+                rate_v_vec[2:end] ./ rate_v_vec[1:end-1]], 
+            label=["Overall rate" "Rate internal nodes" "Rate vertices"], xlabel="cycle", ylabel="Convergence rate", 
+            title="Advection-Diffusion MG cycles: $kmax", legend=:topright, lw=3, tickfontsize=8, linestyle=[:solid :dash :dash], dpi=300) 
         
-        edge_idx = 0
-        for (m, e) in enumerate(edges(Γ))
-            if (src(e) == p_node && dst(e) == i) || (src(e) == i && dst(e) == p_node)
-                edge_idx = m
-                break
+        if !isdir(joinpath("Figures", "MG_example_AdvectionDiffusion"))
+            mkdir(joinpath("Figures", "MG_example_AdvectionDiffusion"))
+        end
+        savefig(Plot_Res, joinpath("Figures", "MG_example_AdvectionDiffusion", "convergence_advection_diffusion.pdf"))
+        
+        int_nodes = max.(2 .^ Levels .- 1, 0)
+
+        ue_split = Array{Any}(undef, ne(Γ))
+        lgt = 1
+        for j = 1:ne(Γ)
+            ue_split[j] = ue[lgt : lgt + int_nodes[j] - 1]
+            lgt += int_nodes[j]
+        end
+
+        coords_v = Vector{Vector{Float64}}(undef, nv(Γ))
+        coords_v[1] = [0.0, 0.0] 
+        
+        N_orig = 4
+        for i in 2:N_orig
+            angle = 2 * pi * (i - 2) / (N_orig - 1)
+            r = edgelength[i-1]
+            coords_v[i] = [r * cos(angle), r * sin(angle)]
+        end
+        
+        for i in (N_orig + 1):nv(Γ)
+            p_node = all_neighbors(Γ, i)[1]
+            
+            edge_idx = 0
+            for (m, e) in enumerate(edges(Γ))
+                if (src(e) == p_node && dst(e) == i) || (src(e) == i && dst(e) == p_node)
+                    edge_idx = m
+                    break
+                end
+            end
+            L_new = edgelength[edge_idx]
+            
+            if p_node == 1
+                coords_v[i] = [L_new, 0.0] 
+            else
+                dir = coords_v[p_node] ./ norm(coords_v[p_node])
+                coords_v[i] = coords_v[p_node] .+ dir .* L_new
             end
         end
-        L_new = edgelength[edge_idx]
-        
-        if p_node == 1
-            coords_v[i] = [L_new, 0.0] 
-        else
-            dir = coords_v[p_node] ./ norm(coords_v[p_node])
-            coords_v[i] = coords_v[p_node] .+ dir .* L_new
-        end
+        plt_graph = plot_graph_3d(Γ, edgelength, coords_v, ue_split, uv, int_nodes)
+        savefig(plt_graph, joinpath("Figures", "MG_example_AdvectionDiffusion", "solution_advection_diffusion_3d.html"))
     end
-    plt_graph = plot_graph_3d(Γ, edgelength, coords_v, ue_split, uv, int_nodes)
-    savefig(plt_graph, joinpath("Figures", "MG_example_AdvectionDiffusion", "solution_advection_diffusion_3d.html"))
     return ue, uv 
 end
 
 
 """
-    run_MG_stargraph()
+    run_MG_stargraph(; do_plots=false)
 
 Execution runner that specifically sets up and solves a basic star graph problem 
 formulated via `testcase_stargraph`. Evaluates exact and numerical differences.
 
 # Arguments
-None.
+- `do_plots::Bool`: Flag to enable or disable plotting (default: false).
 
 # Output
 - `ue::Vector{Float64}`: Solved internal edge variables.
 - `uv::Vector{Float64}`: Solved vertex variables.
 """
-function run_MG_stargraph()
+function run_MG_stargraph(; do_plots=false)
     my_case = testcase_stargraph(8.0, 0.1, 6; dirichlet_nodes=[2,3,4], dirichlet_values=[0.0,0.0,0.0])
 
     ue, uv, residuen, _, _ = run_MG_from_case(my_case; v1=3, v2=3)
@@ -697,27 +708,32 @@ function run_MG_stargraph()
 
     if !isnothing(my_case.exakte_Loesung)
         L2_abs, L2_rel = calculate_case_l2_error(ue, uv, my_case)
-        println("Ergebnis L2-Fehler:")
-        println("Absolut: $L2_abs")
-        println("Relativ: $L2_rel")
+        println("Result L2-Error:")
+        println("Absolute: $L2_abs")
+        println("Relative: $L2_rel")
     end
 
-    plt_3d = plot_case_3d(my_case, ue, uv)
-    if !isdir(joinpath("Figures", "run_MG_stargraph"))
-        mkdir(joinpath("Figures", "run_MG_stargraph"))
+    if do_plots
+        plt_3d = plot_case_3d(my_case, ue, uv)
+        if !isdir(joinpath("Figures", "run_MG_stargraph"))
+            mkdir(joinpath("Figures", "run_MG_stargraph"))
+        end
+        savefig(plt_3d, joinpath("Figures", "run_MG_stargraph", "solution_stargraph_3d.pdf"))
     end
-    savefig(plt_3d, joinpath("Figures", "run_MG_stargraph", "solution_stargraph_3d.pdf"))
     return ue, uv 
 end
 
 
 """
-    run_MG_DiffAdv_example()
+    run_MG_DiffAdv_example(; do_plots=false)
 
 Tests an exact solution triangle graph for the diffusion-advection multigrid logic.
 It verifies flux conservation, plots 3D visual outputs, and analyzes numerical-exact differences.
+
+# Arguments
+- `do_plots::Bool`: Flag to enable or disable plotting (default: false).
 """
-function run_MG_DiffAdv_example()
+function run_MG_DiffAdv_example(; do_plots=false)
     triangle_case = testcase_triangle_exact_WOx(8.0, 0.1, 8; show_plots_exact=false)
     ue, uv, residuen, _, _ = run_MG_from_case(triangle_case; 
                                         v1=3, v2=3, 
@@ -725,13 +741,6 @@ function run_MG_DiffAdv_example()
 
     check_vertex_flux_condition_MG(ue, uv, triangle_case)
     
-    plt = plot_case_3d(triangle_case, ue, uv)
-    title!(plt, "Numerical Solution")
-    if !isdir(joinpath("Figures", "run_MG_DiffAdv_example"))
-        mkdir(joinpath("Figures", "run_MG_DiffAdv_example"))
-    end
-    savefig(plt, joinpath("Figures", "run_MG_DiffAdv_example", "solution_diff_adv_3d.pdf")) 
-
     if triangle_case.exakte_Loesung !== nothing
         uv_exakt = zeros(triangle_case.nv)
         ue_exakt = Float64[]
@@ -746,22 +755,31 @@ function run_MG_DiffAdv_example()
             append!(ue_exakt, u_vals[2:end-1])
         end
 
-        plt_exakt = plot_case_3d(triangle_case, ue_exakt, uv_exakt)
-        title!(plt_exakt, "Exact solution")
-        savefig(plt_exakt, joinpath("Figures", "run_MG_DiffAdv_example", "exact_solution_diff_adv_3d.pdf"))
-
         N_ue_orig = length(ue_exakt)
         N_uv_orig = length(uv_exakt)
 
         ue_err = abs.(ue[1:N_ue_orig] .- ue_exakt)
         uv_err = abs.(uv[1:N_uv_orig] .- uv_exakt)
         
-        plt_err = plot_case_3d(triangle_case, ue_err, uv_err)
-        title!(plt_err, "Absolute Error |u_h - u_exakt|")
-        savefig(plt_err, joinpath("Figures", "run_MG_DiffAdv_example", "absolute_error_diff_adv_3d.pdf"))
-        
         max_err = max(maximum(ue_err), maximum(uv_err))
         println("=> Maximum absolute error: ", round(max_err, sigdigits=4))
+        
+        if do_plots
+            plt = plot_case_3d(triangle_case, ue, uv)
+            title!(plt, "Numerical Solution")
+            if !isdir(joinpath("Figures", "run_MG_DiffAdv_example"))
+                mkdir(joinpath("Figures", "run_MG_DiffAdv_example"))
+            end
+            savefig(plt, joinpath("Figures", "run_MG_DiffAdv_example", "solution_diff_adv_3d.pdf")) 
+
+            plt_exakt = plot_case_3d(triangle_case, ue_exakt, uv_exakt)
+            title!(plt_exakt, "Exact solution")
+            savefig(plt_exakt, joinpath("Figures", "run_MG_DiffAdv_example", "exact_solution_diff_adv_3d.pdf"))
+
+            plt_err = plot_case_3d(triangle_case, ue_err, uv_err)
+            title!(plt_err, "Absolute Error |u_h - u_exakt|")
+            savefig(plt_err, joinpath("Figures", "run_MG_DiffAdv_example", "absolute_error_diff_adv_3d.pdf"))
+        end
     else
         @warn "No exact solution available."
     end
@@ -773,11 +791,16 @@ function run_MG_DiffAdv_example()
         println("  Relative: $L2_rel")
     end
 
-    pltnumvex = plot_case_num_vs_exact(triangle_case, ue, uv, "Numerical vs. Exact")
-    savefig(pltnumvex, joinpath("Figures", "run_MG_DiffAdv_example", "numerical_vs_exact_diff_adv.pdf"))
+    if do_plots
+        if !isdir(joinpath("Figures", "run_MG_DiffAdv_example"))
+            mkdir(joinpath("Figures", "run_MG_DiffAdv_example"))
+        end
+        pltnumvex = plot_case_num_vs_exact(triangle_case, ue, uv, "Numerical vs. Exact")
+        savefig(pltnumvex, joinpath("Figures", "run_MG_DiffAdv_example", "numerical_vs_exact_diff_adv.pdf"))
 
-    plt_local_error = plot_case_edge_difference(triangle_case, ue, uv, "Local Error Distribution")
-    savefig(plt_local_error, joinpath("Figures", "run_MG_DiffAdv_example", "local_error_diff_adv.pdf"))
+        plt_local_error = plot_case_edge_difference(triangle_case, ue, uv, "Local Error Distribution")
+        savefig(plt_local_error, joinpath("Figures", "run_MG_DiffAdv_example", "local_error_diff_adv.pdf"))
+    end
 end
 
 
@@ -798,9 +821,9 @@ function run_barabasi_example()
 
     if !isnothing(my_barabasi_case.exakte_Loesung)
         L2_abs, L2_rel = calculate_case_l2_error(ue, uv, my_barabasi_case)
-        println("Ergebnis L2-Fehler:")
-        println("  Absolut: $L2_abs")
-        println("  Relativ: $L2_rel")
+        println("Result L2-Error:")
+        println("Absolute: $L2_abs")
+        println("Relative: $L2_rel")
     end
 end
 
@@ -821,20 +844,23 @@ function run_barabasi_example_with_cycle()
 
     if !isnothing(my_barabasi_case.exakte_Loesung)
         L2_abs, L2_rel = calculate_case_l2_error(ue, uv, my_barabasi_case)
-        println("Ergebnis L2-Fehler:")
-        println("  Absolut: $L2_abs")
-        println("  Relativ: $L2_rel")
+        println("Result L2-Error:")
+        println("Absolute: $L2_abs")
+        println("Relative: $L2_rel")
     end
 end
 
 
 """
-    run_star_KumarLeugering()
+    run_star_KumarLeugering(; do_plots=false)
 
 Applies the specialized analytical star-graph benchmark (Kumar-Leugering model) 
 and investigates accurate resolution alongside pointwise error derivation.
+
+# Arguments
+- `do_plots::Bool`: Flag to enable or disable plotting (default: false).
 """
-function run_star_KumarLeugering()
+function run_star_KumarLeugering(; do_plots=false)
     case = testcase_star_exact_Kumar_Leugering(0.003, 0.01, 0.007, 8, layer_mesh=:uniform)
 
     ue, uv, residuen, _, _ = run_MG_from_case(case; 
@@ -842,12 +868,14 @@ function run_star_KumarLeugering()
 
     check_vertex_flux_condition_MG(ue, uv, case)
 
-    plt = plot_case_3d(case, ue, uv)
-    title!(plt, "Numerical solution")
-    if !isdir(joinpath("Figures", "run_star_KumarLeugering"))
-        mkdir(joinpath("Figures", "run_star_KumarLeugering"))
+    if do_plots
+        plt = plot_case_3d(case, ue, uv)
+        title!(plt, "Numerical solution")
+        if !isdir(joinpath("Figures", "run_star_KumarLeugering"))
+            mkdir(joinpath("Figures", "run_star_KumarLeugering"))
+        end
+        savefig(plt, joinpath("Figures", "run_star_KumarLeugering", "Kumar_Leugering_solution_MG.pdf"))
     end
-    savefig(plt, joinpath("Figures", "run_star_KumarLeugering", "Kumar_Leugering_solution_MG.pdf"))
 
     if case.exakte_Loesung !== nothing
         uv_exakt = zeros(case.nv)
@@ -864,55 +892,57 @@ function run_star_KumarLeugering()
             append!(ue_exakt, u_vals[2:end-1])
         end
 
-        plt_exakt = plot_case_3d(case, ue_exakt, uv_exakt)
-        savefig(plt_exakt, joinpath("Figures", "run_star_KumarLeugering", "Kumar_Leugering_solution_exact.pdf"))
-        p_both = plot(plt, plt_exakt, size=(450, 900), layout=(2, 1), margin=5Plots.mm, dpi=1200)
-
         N_ue_orig = length(ue_exakt)    
         N_uv_orig = length(uv_exakt)
 
         ue_err = abs.(ue[1:N_ue_orig] .- ue_exakt)
         uv_err = abs.(uv[1:N_uv_orig] .- uv_exakt)
         
-        plt_err = plot_case_3d(case, ue_err, uv_err)
-        title!(plt_err, "Absolute error |u_h - u|")
-
-        savefig(plt_err, joinpath("Figures", "run_star_KumarLeugering", "MG_Kumar_Leugering_solution_error.pdf"))
-        
         max_err = max(maximum(ue_err), maximum(uv_err))
         println("Maximum error: ", round(max_err, sigdigits=4))
+        
+        if do_plots
+            plt_exakt = plot_case_3d(case, ue_exakt, uv_exakt)
+            savefig(plt_exakt, joinpath("Figures", "run_star_KumarLeugering", "Kumar_Leugering_solution_exact.pdf"))
+            p_both = plot(plt, plt_exakt, size=(450, 900), layout=(2, 1), margin=5Plots.mm, dpi=1200)
+
+            plt_err = plot_case_3d(case, ue_err, uv_err)
+            title!(plt_err, "Absolute error |u_h - u|")
+            savefig(plt_err, joinpath("Figures", "run_star_KumarLeugering", "MG_Kumar_Leugering_solution_error.pdf"))
+        end
     else
         @warn "No exact solution available for error analysis."
     end
 
     if !isnothing(case.exakte_Loesung)
         L2_abs, L2_rel = calculate_case_l2_error(ue, uv, case)
-        println("Ergebnis L2-Fehler:")
-        println("  Absolut: $L2_abs")
-        println("  Relativ: $L2_rel")
+        println("Result L2-Error:")
+        println("Absolute: $L2_abs")
+        println("Relative: $L2_rel")
     end
 
-    p = plot_edges_2d_simple(case, ue, uv)
-
-    savefig(p, joinpath("Figures", "run_star_KumarLeugering", "Kumar_Leugering_solution_edgewise.pdf"))
+    if do_plots
+        p = plot_edges_2d_simple(case, ue, uv)
+        savefig(p, joinpath("Figures", "run_star_KumarLeugering", "Kumar_Leugering_solution_edgewise.pdf"))
+    end
 end
 
 
 """
-    plot_convergence_rate_shishkin()
+    plot_convergence_rate_shishkin(; do_plots=false)
 
 Computes and illustrates the convergence behavior specifically focused on Shishkin and Bakhvalov meshes
 incorporating high advection-diffusion layers.
 
 # Arguments
-None.
+- `do_plots::Bool`: Flag to enable or disable plotting (default: false).
 
 # Output
-- `plt_conv`: Plotted convergence rate graph representation.
+- `plt_conv`: Plotted convergence rate graph representation, or `nothing` if plots are disabled.
 - `h_values::Vector`: Approximate spatial refinement increments.
 - `errors_L2::Vector`: Computed absolute convergence errors in corresponding refinement runs.
 """
-function plot_convergence_rate_shishkin()
+function plot_convergence_rate_shishkin(; do_plots=false)
     N_values = 2:16
     errors_L2 = Float64[]
     
@@ -930,34 +960,38 @@ function plot_convergence_rate_shishkin()
     end
     h_values = 1.0 ./ (2.0.^N_values)
 
-    ref_O1 = h_values .* (errors_L2[1] / h_values[1]) 
-    ref_O2 = (h_values.^2) .* (errors_L2[1] / h_values[1]^2)
-    ref_ln_O1 = (h_values .* log.(h_values.^-1)) .* (1.35*errors_L2[1]  / (h_values[1] * log(h_values[1].^-1)))
+    plt_conv = nothing
 
-    plt_conv = plot(h_values, errors_L2, 
-                    m=:square, lw=2, 
-                    label="Calculated Error in ||.||_D norm", 
-                    xaxis=:log10, yaxis=:log10,
-                    xlabel="Mesh size h (approx. 1/N)", 
-                    ylabel="Absolute Error",
-                    title="Convergence Rate",
-                    legend=:bottomright,
-                    dpi=600)
-                    
-    plot!(plt_conv, h_values, ref_O1, lw=2, ls=:dash, color=:gray, label="O(h) Reference")
-    plot!(plt_conv, h_values, ref_O2, lw=2, ls=:dot, color=:gray, label="O(h^2) Reference")
-    plot!(plt_conv, h_values, ref_ln_O1, lw=2, ls=:dashdot, color=:gray, label="O(h log(h⁻¹)) Reference", m=:circle)
-    if !isdir(joinpath("Figures", "plot_convergence_rate_shishkin"))
-        mkdir(joinpath("Figures", "plot_convergence_rate_shishkin"))
+    if do_plots
+        ref_O1 = h_values .* (errors_L2[1] / h_values[1]) 
+        ref_O2 = (h_values.^2) .* (errors_L2[1] / h_values[1]^2)
+        ref_ln_O1 = (h_values .* log.(h_values.^-1)) .* (1.35*errors_L2[1]  / (h_values[1] * log(h_values[1].^-1)))
+
+        plt_conv = plot(h_values, errors_L2, 
+                        m=:square, lw=2, 
+                        label="Calculated Error in ||.||_D norm", 
+                        xaxis=:log10, yaxis=:log10,
+                        xlabel="Mesh size h (approx. 1/N)", 
+                        ylabel="Absolute Error",
+                        title="Convergence Rate",
+                        legend=:bottomright,
+                        dpi=600)
+                        
+        plot!(plt_conv, h_values, ref_O1, lw=2, ls=:dash, color=:gray, label="O(h) Reference")
+        plot!(plt_conv, h_values, ref_O2, lw=2, ls=:dot, color=:gray, label="O(h^2) Reference")
+        plot!(plt_conv, h_values, ref_ln_O1, lw=2, ls=:dashdot, color=:gray, label="O(h log(h⁻¹)) Reference", m=:circle)
+        if !isdir(joinpath("Figures", "plot_convergence_rate_shishkin"))
+            mkdir(joinpath("Figures", "plot_convergence_rate_shishkin"))
+        end
+        savefig(plt_conv, joinpath("Figures", "plot_convergence_rate_shishkin", "Shishkin_Convergence_bakhvalov.pdf"))
     end
-    savefig(plt_conv, joinpath("Figures", "plot_convergence_rate_shishkin", "Shishkin_Convergence_bakhvalov.pdf"))
 
     return plt_conv, h_values, errors_L2
 end
 
 
 """
-    plot_convergence_rate_SUPG()
+    plot_convergence_rate_SUPG(; do_plots=false)
 
 Conducts a convergence review utilizing (SUPG) stabilization methodology on standard generated meshes.
 
@@ -965,11 +999,11 @@ Conducts a convergence review utilizing (SUPG) stabilization methodology on stan
 - `do_plots::Bool`: Flag to enable or disable intermediate solution visualizations (default: false).
 
 # Output
-- `plt_conv`: Plotted convergence rate graph representation.
+- `plt_conv`: Plotted convergence rate graph representation, or `nothing` if plots are disabled.
 - `h_values::Vector`: Approximate spatial refinement increments.
 - `errors_L2::Vector`: Computed absolute convergence errors.
 """
-function plot_convergence_rate_SUPG(;do_plots=false)
+function plot_convergence_rate_SUPG(; do_plots=false)
     case = testcase_star_MMS_smooth(1e-6, 1e-6, 1e-6, 6)
     ue, uv, residuen, _, _ = run_MG_from_case(case; 
                                 v1=3, v2=3, autofix=false, use_SUPG=false,
@@ -1004,7 +1038,7 @@ function plot_convergence_rate_SUPG(;do_plots=false)
             error("Exact solution missing for convergence plot!")
         end
 
-        if (case.exakte_Loesung !== nothing) && do_plots
+        if case.exakte_Loesung !== nothing 
             uv_exakt = zeros(case.nv)
             ue_exakt = Float64[]
 
@@ -1018,68 +1052,76 @@ function plot_convergence_rate_SUPG(;do_plots=false)
                 append!(ue_exakt, u_vals[2:end-1])
             end
 
-            plt_exakt = plot_case_3d(case, ue_exakt, uv_exakt)
-            title!(plt_exakt, "Exact analytical solution")
-            savefig(plt_exakt, joinpath("Figures", "plot_convergence_rate_SUPG", "Tiny_diff_exact.pdf"))
-            p_both = plot(plt, plt_exakt, size=(450, 900), layout=(2, 1), margin=5Plots.mm, dpi=1200)
-            savefig(p_both, joinpath("Figures", "plot_convergence_rate_SUPG", "Kumar_Leugering_solution_comparison.pdf"))
-
             N_ue_orig = length(ue_exakt)    
             N_uv_orig = length(uv_exakt)
 
             ue_err = abs.(ue[1:N_ue_orig] .- ue_exakt)
             uv_err = abs.(uv[1:N_uv_orig] .- uv_exakt)
             
-            plt_err = plot_case_3d(case, ue_err, uv_err)
-            title!(plt_err, "Absoluter Error |u_h - u_exact|")
-            savefig(plt_err, joinpath("Figures", "plot_convergence_rate_SUPG", "Tiny_diff_absolute_error.pdf"))
-            
             max_err = max(maximum(ue_err), maximum(uv_err))
-            println("=> Maximaler absoluter Fehler der Diskretisierung: ", round(max_err, sigdigits=4))
+            println("=> Maximum absolute discretization error: ", round(max_err, sigdigits=4))
+
+            if do_plots
+                plt_exakt = plot_case_3d(case, ue_exakt, uv_exakt)
+                title!(plt_exakt, "Exact analytical solution")
+                savefig(plt_exakt, joinpath("Figures", "plot_convergence_rate_SUPG", "Tiny_diff_exact.pdf"))
+                
+                p_both = plot(plt, plt_exakt, size=(450, 900), layout=(2, 1), margin=5Plots.mm, dpi=1200)
+                savefig(p_both, joinpath("Figures", "plot_convergence_rate_SUPG", "Kumar_Leugering_solution_comparison.pdf"))
+
+                plt_err = plot_case_3d(case, ue_err, uv_err)
+                title!(plt_err, "Absolute Error |u_h - u_exact|")
+                savefig(plt_err, joinpath("Figures", "plot_convergence_rate_SUPG", "Tiny_diff_absolute_error.pdf"))
+            end
         else
             @warn "No exact solution is available for this case."
         end
     end
 
     h_values = 1.0 ./ (2.0.^N_values)
-    ref_O1 = h_values .* (errors_L2[1] / h_values[1])      
-    ref_O2 = (h_values.^2) .* (errors_L2[1] / h_values[1]^2) 
-    ref_O32 = (h_values .^(3/2)) .* (1.5*errors_L2[1]  / h_values[1]^(3/2)) 
+    plt_conv = nothing
 
-    plt_conv = plot(h_values, errors_L2, 
-                    m=:square, lw=2, 
-                    label="Calculated Error in ||.||_D norm", 
-                    xaxis=:log10, yaxis=:log10,
-                    xlabel="Mesh size h (approx. 1/N)", 
-                    ylabel="Absolute Error",
-                    title="Convergence Rate",
-                    legend=:bottomright,
-                    dpi=600)
-                    
-    plot!(plt_conv, h_values, ref_O1, lw=2, ls=:dash, color=:gray, label="O(h) Reference")
-    plot!(plt_conv, h_values, ref_O2, lw=2, ls=:dot, color=:gray, label="O(h^2) Reference")
-    plot!(plt_conv, h_values, ref_O32, lw=2, ls=:dashdot, color=:gray, label="O(h^(3/2)) Reference", m=:circle)
-    if !isdir(joinpath("Figures", "plot_convergence_rate_SUPG"))
+    if do_plots
+        ref_O1 = h_values .* (errors_L2[1] / h_values[1])      
+        ref_O2 = (h_values.^2) .* (errors_L2[1] / h_values[1]^2) 
+        ref_O32 = (h_values .^(3/2)) .* (1.5*errors_L2[1]  / h_values[1]^(3/2)) 
+
+        plt_conv = plot(h_values, errors_L2, 
+                        m=:square, lw=2, 
+                        label="Calculated Error in ||.||_D norm", 
+                        xaxis=:log10, yaxis=:log10,
+                        xlabel="Mesh size h (approx. 1/N)", 
+                        ylabel="Absolute Error",
+                        title="Convergence Rate",
+                        legend=:bottomright,
+                        dpi=600)
+                        
+        plot!(plt_conv, h_values, ref_O1, lw=2, ls=:dash, color=:gray, label="O(h) Reference")
+        plot!(plt_conv, h_values, ref_O2, lw=2, ls=:dot, color=:gray, label="O(h^2) Reference")
+        plot!(plt_conv, h_values, ref_O32, lw=2, ls=:dashdot, color=:gray, label="O(h^(3/2)) Reference", m=:circle)
+        
+        if !isdir(joinpath("Figures", "plot_convergence_rate_SUPG"))
             mkdir(joinpath("Figures", "plot_convergence_rate_SUPG"))
         end
-    savefig(plt_conv, joinpath("Figures", "plot_convergence_rate_SUPG", "SUPG_Convergence.pdf"))
+        savefig(plt_conv, joinpath("Figures", "plot_convergence_rate_SUPG", "SUPG_Convergence.pdf"))
+    end
 
     return plt_conv, h_values, errors_L2
 end
 
 
 """
-    plot_convergence_rate_SUPG_comparison()
+    plot_convergence_rate_SUPG_comparison(; do_plots=false)
 
 Compares algorithmic SUPG convergence boundaries structurally side-by-side with variants. Validates if additional SUPG node projections stabilize or limit metric behaviors.
 
 # Arguments
-None.
+- `do_plots::Bool`: Flag to enable or disable plotting (default: false).
 
 # Output
 - Returns plotted convergence rates and raw arrays tracking internal iteration accuracy metrics.
 """
-function plot_convergence_rate_SUPG_comparison(;do_plots=false)
+function plot_convergence_rate_SUPG_comparison(; do_plots=false)
     case_init = testcase_star_MMS_smooth(1e-6, 1e-6, 1e-6, 6, A3 = 1.0)
     ue_init, uv_init, res_init, _, _ = run_MG_from_case(case_init; 
                                                 v1=3, v2=3, autofix=false, use_SUPG=false,
@@ -1133,7 +1175,7 @@ function plot_convergence_rate_SUPG_comparison(;do_plots=false)
             error("Exact solution missing for convergence plot!")
         end
         
-        if (case.exakte_Loesung !== nothing) && do_plots
+        if case.exakte_Loesung !== nothing 
             uv_exakt = zeros(case.nv)
             ue_exakt = Float64[]
 
@@ -1145,6 +1187,18 @@ function plot_convergence_rate_SUPG_comparison(;do_plots=false)
                 append!(ue_exakt, u_vals[2:end-1])
             end
 
+            N_ue_orig = length(ue_exakt)    
+            N_uv_orig = length(uv_exakt)
+
+            ue_err = abs.(ue_no[1:N_ue_orig] .- ue_exakt)
+            uv_err = abs.(uv_no[1:N_uv_orig] .- uv_exakt)
+            
+            ue_err_yes = abs.(ue_yes[1:N_ue_orig] .- ue_exakt)
+            uv_err_yes = abs.(uv_yes[1:N_uv_orig] .- uv_exakt)
+            
+            max_err = max(maximum(ue_err_yes), maximum(uv_err_yes))
+            println("Maximum absolute discretization error (With add. SUPG): ", round(max_err, sigdigits=4))
+
             if do_plots
                 plt_exakt = plot_case_3d(case, ue_exakt, uv_exakt)
                 title!(plt_exakt, "Exact analytical solution")
@@ -1153,27 +1207,15 @@ function plot_convergence_rate_SUPG_comparison(;do_plots=false)
                 plt = plot_case_3d(case, ue_yes, uv_yes)
                 title!(plt, "Numerical solution (With add. SUPG), N=$N")
                 p_both = plot(plt, plt_exakt, size=(450, 900), layout=(2, 1), margin=5Plots.mm, dpi=1200)
+
+                plt_err_no = plot_case_3d(case, ue_err, uv_err)
+                title!(plt_err_no, "Absolute Error |u_h - u_exakt| (No add. SUPG)")
+                savefig(plt_err_no, joinpath("Figures", "plot_convergence_rate_SUPG", "SUPG_Comparison_Error_NoSUPG_N$N.pdf"))
+                
+                plt_err_yes = plot_case_3d(case, ue_err_yes, uv_err_yes)
+                title!(plt_err_yes, "Absolute Error |u_h - u_exakt| (With add. SUPG)")
+                savefig(plt_err_yes, joinpath("Figures", "plot_convergence_rate_SUPG", "SUPG_Comparison_Error_WithSUPG_N$N.pdf"))
             end
-
-            N_ue_orig = length(ue_exakt)    
-            N_uv_orig = length(uv_exakt)
-
-            ue_err = abs.(ue_no[1:N_ue_orig] .- ue_exakt)
-            uv_err = abs.(uv_no[1:N_uv_orig] .- uv_exakt)
-            
-            plt_err = plot_case_3d(case, ue_err, uv_err)
-            title!(plt_err, "Absolute Error |u_h - u_exakt| (No add. SUPG)")
-            savefig(plt_err, joinpath("Figures", "plot_convergence_rate_SUPG", "SUPG_Comparison_Error_NoSUPG_N$N.pdf"))
-            
-            ue_err = abs.(ue_yes[1:N_ue_orig] .- ue_exakt)
-            uv_err = abs.(uv_yes[1:N_uv_orig] .- uv_exakt)
-            
-            plt_err = plot_case_3d(case, ue_err, uv_err)
-            title!(plt_err, "Absolute Error |u_h - u_exakt| (With add. SUPG)")
-            savefig(plt_err, joinpath("Figures", "plot_convergence_rate_SUPG", "SUPG_Comparison_Error_WithSUPG_N$N.pdf"))
-            
-            max_err = max(maximum(ue_err), maximum(uv_err))
-            println("Maximum absolute discretization error (With add. SUPG): ", round(max_err, sigdigits=4))
         else
             @warn "No exact solution is provided for this case."
         end
@@ -1210,50 +1252,56 @@ function plot_convergence_rate_SUPG_comparison(;do_plots=false)
     end
     println("-" ^ 95)
     
-    anchor_err = errors_L2_without[1]
-    ref_O1 = h_values .* (anchor_err / h_values[1])               
-    ref_O2 = (h_values.^2) .* (anchor_err / h_values[1]^2)        
-    ref_O32 = (h_values .^(3/2)) .* (1.5 * anchor_err / h_values[1]^(3/2)) 
+    plt_conv = nothing
 
-    plt_conv = plot(h_values, errors_L2_without, 
-                    m=:circle, lw=2, 
-                    label="Without add. SUPG", 
-                    xaxis=:log10, yaxis=:log10,
-                    xlabel="Mesh size h (approx. 1/N)", 
-                    ylabel="Absolute Error ||.||_D",
-                    title="SUPG Convergence Rate Comparison",
-                    legend=:bottomright,
-                    dpi=600)
-                    
-    plot!(plt_conv, h_values, errors_L2_with, ls =:dash,
-        lw=2, 
-        label="With add. SUPG")
-                    
-    plot!(plt_conv, h_values, ref_O1, lw=2, ls=:dash, color=:gray, label="O(h) Reference")
-    plot!(plt_conv, h_values, ref_O2, lw=2, ls=:dot, color=:gray, label="O(h^2) Reference")
-    plot!(plt_conv, h_values, ref_O32, lw=2, ls=:dashdot, color=:gray, label="O(h^(3/2)) Reference", m=:utriangle)
-    if !isdir(joinpath("Figures", "plot_convergence_rate_SUPG_comparison"))
-        mkdir(joinpath("Figures", "plot_convergence_rate_SUPG_comparison"))
+    if do_plots
+        anchor_err = errors_L2_without[1]
+        ref_O1 = h_values .* (anchor_err / h_values[1])               
+        ref_O2 = (h_values.^2) .* (anchor_err / h_values[1]^2)        
+        ref_O32 = (h_values .^(3/2)) .* (1.5 * anchor_err / h_values[1]^(3/2)) 
+
+        plt_conv = plot(h_values, errors_L2_without, 
+                        m=:circle, lw=2, 
+                        label="Without add. SUPG", 
+                        xaxis=:log10, yaxis=:log10,
+                        xlabel="Mesh size h (approx. 1/N)", 
+                        ylabel="Absolute Error ||.||_D",
+                        title="SUPG Convergence Rate Comparison",
+                        legend=:bottomright,
+                        dpi=600)
+                        
+        plot!(plt_conv, h_values, errors_L2_with, ls =:dash,
+            lw=2, 
+            label="With add. SUPG")
+                        
+        plot!(plt_conv, h_values, ref_O1, lw=2, ls=:dash, color=:gray, label="O(h) Reference")
+        plot!(plt_conv, h_values, ref_O2, lw=2, ls=:dot, color=:gray, label="O(h^2) Reference")
+        plot!(plt_conv, h_values, ref_O32, lw=2, ls=:dashdot, color=:gray, label="O(h^(3/2)) Reference", m=:utriangle)
+        
+        if !isdir(joinpath("Figures", "plot_convergence_rate_SUPG_comparison"))
+            mkdir(joinpath("Figures", "plot_convergence_rate_SUPG_comparison"))
+        end
+        savefig(plt_conv, joinpath("Figures", "plot_convergence_rate_SUPG_comparison", "SUPG_Convergence_Comparison.pdf"))
     end
-    savefig(plt_conv, joinpath("Figures", "plot_convergence_rate_SUPG_comparison", "SUPG_Convergence_Comparison.pdf"))
 
     return plt_conv, h_values, errors_L2_without, errors_L2_with
 end
 
 
 """
-    run_star_KumarLeugering_dG(; eta::Float64=10.0, p::Int=1)
+    run_star_KumarLeugering_dG(; eta::Float64=10.0, p::Int=1, do_plots=false)
 
 Evaluates the Kumar-Leugering graph case specifically mapping the analytical limits using a discontinuous Galerkin (dG) strategy and visualizing interface discontinuities.
 
 # Arguments
 - `eta::Float64`: Penalty factor scaling across discontinuous interfaces.
 - `p::Int`: Basis polynomial degrees representation factor (default: 1).
+- `do_plots::Bool`: Flag to enable or disable plotting (default: false).
 
 # Output
 None. 
 """
-function run_star_KumarLeugering_dG(; eta=10.0, p=1)
+function run_star_KumarLeugering_dG(; eta=10.0, p=1, do_plots=false)
     configs = [
         (:uniform, plot_case_3d, "Uniform-DG"),
         (:shishkin, plot_shishkin_3d, "Shishkin-DG")
@@ -1299,7 +1347,7 @@ function run_star_KumarLeugering_dG(; eta=10.0, p=1)
         ue = u_full[1:NE]
         uv = u_full[NE+1:end]
 
-if case.exakte_Loesung !== nothing
+        if case.exakte_Loesung !== nothing
             uv_exakt = zeros(case.nv)
             ue_exakt = Float64[]
 
@@ -1312,12 +1360,10 @@ if case.exakte_Loesung !== nothing
                 
                 N_e = case.n_e[e]
                 
-                # Corrected loop: Iterate over all elements to capture both DOFs per element
                 for k in 1:N_e
                     x_left = x_nodes[k]
                     x_right = x_nodes[k+1]
                     
-                    # Evaluate exact solution at the left and right boundary of the current element
                     push!(ue_exakt, case.exakte_Loesung(x_left)[m]) 
                     push!(ue_exakt, case.exakte_Loesung(x_right)[m]) 
                 end
@@ -1332,28 +1378,30 @@ if case.exakte_Loesung !== nothing
             @warn "No exact solution available."
         end
 
-        ue_cg_mapped = Float64[]
-        for i in 1:2:length(ue)
-            push!(ue_cg_mapped, 0.5 * (ue[i] + ue[i+1]))
-        end
+        if do_plots
+            ue_cg_mapped = Float64[]
+            for i in 1:2:length(ue)
+                push!(ue_cg_mapped, 0.5 * (ue[i] + ue[i+1]))
+            end
 
-        plt = plot_func(case, ue_cg_mapped, uv)
-        title!(plt, "$title_str - Numerical Solution")
-        if !isdir(joinpath("Figures", "run_star_KumarLeugering_dG"))
-            mkdir(joinpath("Figures", "run_star_KumarLeugering_dG"))
-        end
-        savefig(plt, joinpath("Figures", "run_star_KumarLeugering_dG", "Kumar_Leugering_$(title_str)_solution.pdf"))
+            plt = plot_func(case, ue_cg_mapped, uv)
+            title!(plt, "$title_str - Numerical Solution")
+            if !isdir(joinpath("Figures", "run_star_KumarLeugering_dG"))
+                mkdir(joinpath("Figures", "run_star_KumarLeugering_dG"))
+            end
+            savefig(plt, joinpath("Figures", "run_star_KumarLeugering_dG", "Kumar_Leugering_$(title_str)_solution.pdf"))
 
-        if case.exakte_Loesung !== nothing
-            ue_exakt_cg = [ue_exakt[i] for i in 1:2:length(ue_exakt)]
-            
-            plt_exakt = plot_func(case, ue_exakt_cg, uv_exakt)
-            title!(plt_exakt, "$title_str - Exact Solution")
-            savefig(plt_exakt, joinpath("Figures", "run_star_KumarLeugering_dG", "Kumar_Leugering_$(title_str)_exact_solution.pdf"))
+            if case.exakte_Loesung !== nothing
+                ue_exakt_cg = [ue_exakt[i] for i in 1:2:length(ue_exakt)]
+                
+                plt_exakt = plot_func(case, ue_exakt_cg, uv_exakt)
+                title!(plt_exakt, "$title_str - Exact Solution")
+                savefig(plt_exakt, joinpath("Figures", "run_star_KumarLeugering_dG", "Kumar_Leugering_$(title_str)_exact_solution.pdf"))
 
-            plt_diff = plot_func(case, abs.(ue_cg_mapped .- ue_exakt_cg), abs.(uv .- uv_exakt))
-            title!(plt_diff, "$title_str - Difference (Numerical - Exact)")
-            savefig(plt_diff, joinpath("Figures", "run_star_KumarLeugering_dG", "Kumar_Leugering_$(title_str)_difference.pdf"))
+                plt_diff = plot_func(case, abs.(ue_cg_mapped .- ue_exakt_cg), abs.(uv .- uv_exakt))
+                title!(plt_diff, "$title_str - Difference (Numerical - Exact)")
+                savefig(plt_diff, joinpath("Figures", "run_star_KumarLeugering_dG", "Kumar_Leugering_$(title_str)_difference.pdf"))
+            end
         end
     end
 end
@@ -1483,33 +1531,37 @@ function plot_convergence_rate_dG_comparison(; eta=10.0, p=1, do_plots=false)
     end
     println("-" ^ 95)
 
-    anchor_err = errors_D_shishkin[1]
-    ref_O1  = h_values .* (anchor_err / h_values[1])               
-    ref_O2  = (h_values.^2) .* (anchor_err / h_values[1]^2)        
-    ref_O32 = (h_values .^(3/2)) .* (1.5 * anchor_err / h_values[1]^(3/2)) 
+    plt_conv = nothing
 
-    plt_conv = plot(h_values, errors_H1_uniform, 
-                    m=:circle, lw=2,
-                    label="Uniform DG (H1-Norm)", 
-                    xaxis=:log10, yaxis=:log10,
-                    xlabel="Mesh size h (approx. 1/N)", 
-                    ylabel="Absolute Error",
-                    title="Convergence: Uniform (H1) vs. Shishkin (D-Norm)",
-                    legend=:bottomright,
-                    dpi=600)
-                    
-    plot!(plt_conv, h_values, errors_D_shishkin, 
-        m=:square, lw=2, ls=:solid,
-        label="Shishkin DG (D-Norm)")
-                    
-    plot!(plt_conv, h_values, ref_O1, lw=2, ls=:dash, color=:gray, label="O(h) Reference")
-    plot!(plt_conv, h_values, ref_O2, lw=2, ls=:dot, color=:gray, label="O(h^2) Reference")
-    plot!(plt_conv, h_values, ref_O32, lw=2, ls=:dashdot, color=:gray, label="O(h^(3/2)) Reference", m=:utriangle)
+    if do_plots
+        anchor_err = errors_D_shishkin[1]
+        ref_O1  = h_values .* (anchor_err / h_values[1])               
+        ref_O2  = (h_values.^2) .* (anchor_err / h_values[1]^2)        
+        ref_O32 = (h_values .^(3/2)) .* (1.5 * anchor_err / h_values[1]^(3/2)) 
 
-    if !isdir(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
-        mkdir(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
+        plt_conv = plot(h_values, errors_H1_uniform, 
+                        m=:circle, lw=2,
+                        label="Uniform DG (H1-Norm)", 
+                        xaxis=:log10, yaxis=:log10,
+                        xlabel="Mesh size h (approx. 1/N)", 
+                        ylabel="Absolute Error",
+                        title="Convergence: Uniform (H1) vs. Shishkin (D-Norm)",
+                        legend=:bottomright,
+                        dpi=600)
+                        
+        plot!(plt_conv, h_values, errors_D_shishkin, 
+            m=:square, lw=2, ls=:solid,
+            label="Shishkin DG (D-Norm)")
+                        
+        plot!(plt_conv, h_values, ref_O1, lw=2, ls=:dash, color=:gray, label="O(h) Reference")
+        plot!(plt_conv, h_values, ref_O2, lw=2, ls=:dot, color=:gray, label="O(h^2) Reference")
+        plot!(plt_conv, h_values, ref_O32, lw=2, ls=:dashdot, color=:gray, label="O(h^(3/2)) Reference", m=:utriangle)
+
+        if !isdir(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
+            mkdir(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
+        end
+        savefig(plt_conv, joinpath("Figures", "plot_convergence_rate_dG_comparison", "DG_Shishkin_DNorm_Convergence.pdf"))
     end
-    savefig(plt_conv, joinpath("Figures", "plot_convergence_rate_dG_comparison", "DG_Shishkin_DNorm_Convergence.pdf"))
 
     return plt_conv, h_values, errors_H1_uniform, errors_D_shishkin
 end
@@ -1635,7 +1687,7 @@ Computes the convergence boundaries mapped natively out of the uniform mesh stra
 # Output
 - Returns comprehensive structural chart renders.
 """
-function plot_convergence_rate_pure_dG_comparison(; eta=10.0, p=1, do_plots=true)
+function plot_convergence_rate_pure_dG_comparison(; eta=10.0, p=1, do_plots=false)
     N_values = 2:16
     
     errors_H1_uniform = Float64[]
@@ -1717,35 +1769,39 @@ function plot_convergence_rate_pure_dG_comparison(; eta=10.0, p=1, do_plots=true
     end
     println("-" ^ 95)
 
-    anchor_err = errors_H1_uniform[1]
-    ref_O1  = h_values .* (anchor_err / h_values[1])               
-    ref_O2  = (h_values.^2) .* (anchor_err / h_values[1]^2)        
-    ref_O32 = (h_values .^(3/2)) .* (1.5 * anchor_err / h_values[1]^(3/2)) 
+    plt_conv = nothing
 
-    plt_conv = plot(h_values, errors_H1_uniform, 
-                    m=:circle, lw=2,
-                    label="DG-norm", 
-                    xaxis=:log10, yaxis=:log10,
-                    xlabel="Mesh size h (approx. 1/N)", 
-                    ylabel="Absolute Error",
-                    title="Convergence: dG energy norm",
-                    legend=:bottomright,
-                    dpi=600)
-                    
-    plot!(plt_conv, h_values, ref_O1, lw=2, ls=:dash, color=:gray, label="O(h) Reference")
-    plot!(plt_conv, h_values, ref_O2, lw=2, ls=:dot, color=:gray, label="O(h^2) Reference")
-    plot!(plt_conv, h_values, ref_O32, lw=2, ls=:dashdot, color=:gray, label="O(h^(3/2)) Reference", m=:utriangle)
-    if !isdir(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
-        mkdir(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
+    if do_plots
+        anchor_err = errors_H1_uniform[1]
+        ref_O1  = h_values .* (anchor_err / h_values[1])               
+        ref_O2  = (h_values.^2) .* (anchor_err / h_values[1]^2)        
+        ref_O32 = (h_values .^(3/2)) .* (1.5 * anchor_err / h_values[1]^(3/2)) 
+
+        plt_conv = plot(h_values, errors_H1_uniform, 
+                        m=:circle, lw=2,
+                        label="DG-norm", 
+                        xaxis=:log10, yaxis=:log10,
+                        xlabel="Mesh size h (approx. 1/N)", 
+                        ylabel="Absolute Error",
+                        title="Convergence: dG energy norm",
+                        legend=:bottomright,
+                        dpi=600)
+                        
+        plot!(plt_conv, h_values, ref_O1, lw=2, ls=:dash, color=:gray, label="O(h) Reference")
+        plot!(plt_conv, h_values, ref_O2, lw=2, ls=:dot, color=:gray, label="O(h^2) Reference")
+        plot!(plt_conv, h_values, ref_O32, lw=2, ls=:dashdot, color=:gray, label="O(h^(3/2)) Reference", m=:utriangle)
+        if !isdir(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
+            mkdir(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
+        end
+        savefig(plt_conv, joinpath("Figures", "plot_convergence_rate_dG_comparison", "PureDG_Uniform_H1_Convergence.pdf"))
     end
-    savefig(plt_conv, joinpath("Figures", "plot_convergence_rate_dG_comparison", "PureDG_Uniform_H1_Convergence.pdf"))
 
     return plt_conv, h_values, errors_H1_uniform
 end
 
 
 """
-    run_star_KumarLeugering_pure_dG(; eta::Float64=10.0, p::Int=1)
+    run_star_KumarLeugering_pure_dG(; eta::Float64=10.0, p::Int=1, do_plots=false)
 
 Test execution wrapper assessing explicit discontinuity integration directly evaluating independent boundary 
 components modeled purely utilizing non-coupled edge elements.
@@ -1753,11 +1809,12 @@ components modeled purely utilizing non-coupled edge elements.
 # Arguments
 - `eta::Float64`: Interface penalty variable component.
 - `p::Int`: Formulation configuration degree scalar.
+- `do_plots::Bool`: Flag to enable or disable plotting (default: false).
 
 # Output
 None. Creates analytical visualizations mapped locally into designated output drives.
 """
-function run_star_KumarLeugering_pure_dG(; eta=10.0, p=1)
+function run_star_KumarLeugering_pure_dG(; eta=10.0, p=1, do_plots=false)
 
     configs = [
         (:uniform, plot_case_3d, "dG"),
@@ -1834,69 +1891,73 @@ function run_star_KumarLeugering_pure_dG(; eta=10.0, p=1)
             @warn "No exact solution available for this case."
         end
 
-        ue_cg_mapped = Float64[]
-        curr_idx = 1
-        for e in case.edges
-            N_e = case.n_e[e]
-            for k in 1:(N_e - 1)
-                val_L = ue[curr_idx + 2*k - 1]
-                val_R = ue[curr_idx + 2*k]
-                push!(ue_cg_mapped, 0.5 * (val_L + val_R))
-            end
-            curr_idx += 2 * N_e
-        end
-        plt = plot_func(case, ue_cg_mapped, uv)
-        title!(plt, "$title_str - Numerical Solution")
-        if !isdir(joinpath("Figures", "run_star_KumarLeugering_pure_dG"))
-            mkdir(joinpath("Figures", "run_star_KumarLeugering_pure_dG"))
-        end
-        savefig(plt, joinpath("Figures", "run_star_KumarLeugering_pure_dG", "kumarleugering_PureDG_uniform.pdf"))
-
-        if case.exakte_Loesung !== nothing
-            ue_exakt_cg = Float64[]
-            curr_idx_ex = 1
+        if do_plots
+            ue_cg_mapped = Float64[]
+            curr_idx = 1
             for e in case.edges
                 N_e = case.n_e[e]
                 for k in 1:(N_e - 1)
-                    val_L = ue_exakt[curr_idx_ex + 2*k - 1]
-                    val_R = ue_exakt[curr_idx_ex + 2*k]
-                    push!(ue_exakt_cg, 0.5 * (val_L + val_R))
+                    val_L = ue[curr_idx + 2*k - 1]
+                    val_R = ue[curr_idx + 2*k]
+                    push!(ue_cg_mapped, 0.5 * (val_L + val_R))
                 end
-                curr_idx_ex += 2 * N_e
+                curr_idx += 2 * N_e
             end
-            
-            plt_exakt = plot_func(case, ue_exakt_cg, uv_exakt)
-            title!(plt_exakt, "$title_str - Exact Solution")
-
-            plt_diff = plot_func(case, abs.(ue_cg_mapped .- ue_exakt_cg), abs.(uv .- uv_exakt))
-            title!(plt_diff, "$title_str - Difference (Num - Exact)")
+            plt = plot_func(case, ue_cg_mapped, uv)
+            title!(plt, "$title_str - Numerical Solution")
             if !isdir(joinpath("Figures", "run_star_KumarLeugering_pure_dG"))
                 mkdir(joinpath("Figures", "run_star_KumarLeugering_pure_dG"))
             end
-            savefig(plt_diff, joinpath("Figures", "run_star_KumarLeugering_pure_dG", "kumarleugering_Difference_PureDG.pdf"))
+            savefig(plt, joinpath("Figures", "run_star_KumarLeugering_pure_dG", "kumarleugering_PureDG_uniform.pdf"))
+
+            if case.exakte_Loesung !== nothing
+                ue_exakt_cg = Float64[]
+                curr_idx_ex = 1
+                for e in case.edges
+                    N_e = case.n_e[e]
+                    for k in 1:(N_e - 1)
+                        val_L = ue_exakt[curr_idx_ex + 2*k - 1]
+                        val_R = ue_exakt[curr_idx_ex + 2*k]
+                        push!(ue_exakt_cg, 0.5 * (val_L + val_R))
+                    end
+                    curr_idx_ex += 2 * N_e
+                end
+                
+                plt_exakt = plot_func(case, ue_exakt_cg, uv_exakt)
+                title!(plt_exakt, "$title_str - Exact Solution")
+
+                plt_diff = plot_func(case, abs.(ue_cg_mapped .- ue_exakt_cg), abs.(uv .- uv_exakt))
+                title!(plt_diff, "$title_str - Difference (Num - Exact)")
+                savefig(plt_diff, joinpath("Figures", "run_star_KumarLeugering_pure_dG", "kumarleugering_Difference_PureDG.pdf"))
+            end
         end
     end
 end
 
 
 """
-    run_MG_cycle()
+    run_MG_cycle(; do_plots=false)
 
 Solves an advection-diffusion cyclic graph geometry implementation with integrated SUPG parameters, ensuring continuous numerical loop validation algorithms function appropriately alongside visual confirmation tests.
+
+# Arguments
+- `do_plots::Bool`: Flag to enable or disable plotting (default: false).
 """
-function run_MG_cycle()
+function run_MG_cycle(; do_plots=false)
     my_case = testcase_cycle_advection(0.1, 8.0, 10)
 
     ue, uv, residuen, _, _ = run_MG_from_case(my_case; v1=3, v2=3, autofix=false, use_SUPG = true)
 
     check_vertex_flux_condition_MG(ue, uv, my_case)
     
-    plt = plot_case_3d(my_case, ue, uv)
-    title!(plt, "Numerical Solution")
-    if !isdir(joinpath("Figures", "run_MG_cycle"))
-        mkdir(joinpath("Figures", "run_MG_cycle"))
+    if do_plots
+        plt = plot_case_3d(my_case, ue, uv)
+        title!(plt, "Numerical Solution")
+        if !isdir(joinpath("Figures", "run_MG_cycle"))
+            mkdir(joinpath("Figures", "run_MG_cycle"))
+        end
+        savefig(plt, joinpath("Figures", "run_MG_cycle", "cyclegraph_solution_diff_adv_3d.pdf"))
     end
-    savefig(plt, joinpath("Figures", "run_MG_cycle", "cyclegraph_solution_diff_adv_3d.pdf"))
 
     if my_case.exakte_Loesung !== nothing
         uv_exakt = zeros(my_case.nv)
@@ -1912,25 +1973,24 @@ function run_MG_cycle()
             append!(ue_exakt, u_vals[2:end-1])
         end
 
-        plt_exakt = plot_case_3d(my_case, ue_exakt, uv_exakt)
-        title!(plt_exakt, "Exact solution")
-        if !isdir(joinpath("Figures", "run_MG_cycle"))
-            mkdir(joinpath("Figures", "run_MG_cycle"))
-        end
-        savefig(plt_exakt, joinpath("Figures", "run_MG_cycle", "cyclegraph_exact_solution_diff_adv_3d.pdf"))
-
         N_ue_orig = length(ue_exakt)
         N_uv_orig = length(uv_exakt)
 
         ue_err = abs.(ue[1:N_ue_orig] .- ue_exakt)
         uv_err = abs.(uv[1:N_uv_orig] .- uv_exakt)
         
-        plt_err = plot_case_3d(my_case, ue_err, uv_err)
-        title!(plt_err, "Absolute Error |u_h - u_exakt|")
-        savefig(plt_err, joinpath("Figures", "run_MG_cycle", "cyclegraph_absolute_error_diff_adv_3d.pdf"))
-        
         max_err = max(maximum(ue_err), maximum(uv_err))
         println("Maximum absolute error: ", round(max_err, sigdigits=4))
+
+        if do_plots
+            plt_exakt = plot_case_3d(my_case, ue_exakt, uv_exakt)
+            title!(plt_exakt, "Exact solution")
+            savefig(plt_exakt, joinpath("Figures", "run_MG_cycle", "cyclegraph_exact_solution_diff_adv_3d.pdf"))
+            
+            plt_err = plot_case_3d(my_case, ue_err, uv_err)
+            title!(plt_err, "Absolute Error |u_h - u_exakt|")
+            savefig(plt_err, joinpath("Figures", "run_MG_cycle", "cyclegraph_absolute_error_diff_adv_3d.pdf"))
+        end
     else
         @warn "No exact solution available."
     end
@@ -1942,24 +2002,26 @@ function run_MG_cycle()
         println("Relative: $L2_rel")
     end
 
-    pltnumvex = plot_case_num_vs_exact(my_case, ue, uv, "Numerical vs. Exact")
-    if !isdir(joinpath("Figures", "run_MG_cycle"))
-        mkdir(joinpath("Figures", "run_MG_cycle"))
-    end
-    savefig(pltnumvex, joinpath("Figures", "run_MG_cycle", "cyclegraph_numerical_vs_exact_diff_adv.pdf"))
+    if do_plots
+        pltnumvex = plot_case_num_vs_exact(my_case, ue, uv, "Numerical vs. Exact")
+        savefig(pltnumvex, joinpath("Figures", "run_MG_cycle", "cyclegraph_numerical_vs_exact_diff_adv.pdf"))
 
-    plt_local_error = plot_case_edge_difference(my_case, ue, uv, "Local Error Distribution")
-    savefig(plt_local_error, joinpath("Figures", "run_MG_cycle", "cyclegraph_local_error_diff_adv.pdf"))
+        plt_local_error = plot_case_edge_difference(my_case, ue, uv, "Local Error Distribution")
+        savefig(plt_local_error, joinpath("Figures", "run_MG_cycle", "cyclegraph_local_error_diff_adv.pdf"))
+    end
 end
 
 
 """
-    MG_advection_varying_parameters()
+    MG_advection_varying_parameters(; do_plots=false)
 
 Iterates a thorough parameter sweep across a prebuilt advection-diffusion Barabási-Albert geometry.
 Modifies inner logic testing various internal iteration counts (nu_1, nu_2) verifying convergence limits.
+
+# Arguments
+- `do_plots::Bool`: Flag to enable or disable plotting (default: false).
 """
-function MG_advection_varying_parameters()
+function MG_advection_varying_parameters(; do_plots=false)
     my_barabasi_case = testcase_barabasi(2000, 5.0, 0.1, 6; 
                                          dirichlet_nodes=[1, 20], 
                                          dirichlet_values=[0.0, 1.0])
@@ -2062,41 +2124,45 @@ function MG_advection_varying_parameters()
                     kmax += 1
                 end
 
-                ticksvec = kmax - 1 > 9 ? (2:2:kmax) : (2:1:kmax)
-                plot_data = [rate_vec[2:end] ./ rate_vec[1:end-1], 
-                             rate_e_vec[2:end] ./ rate_e_vec[1:end-1],
-                             rate_v_vec[2:end] ./ rate_v_vec[1:end-1]]
-                             
-                title_str = L"$\nu_1$: %$v1; $\nu_2$: %$v2 - %$mu_s-cycles: %$kmax"
+                if do_plots
+                    ticksvec = kmax - 1 > 9 ? (2:2:kmax) : (2:1:kmax)
+                    plot_data = [rate_vec[2:end] ./ rate_vec[1:end-1], 
+                                 rate_e_vec[2:end] ./ rate_e_vec[1:end-1],
+                                 rate_v_vec[2:end] ./ rate_v_vec[1:end-1]]
+                                 
+                    title_str = L"$\nu_1$: %$v1; $\nu_2$: %$v2 - %$mu_s-cycles: %$kmax"
 
-                if zaehl == length(set)
-                    Plot_Res = plot(2:1:kmax, plot_data,
-                        label=["total rate" "rate internal nodes" "rate vertices"],
-                        title=title_str, legend=:topleft, lw=5, tickfontsize=14, 
-                        ylims=(0, lim_y), titlefontsize=20, legendfontsize=16, 
-                        xticks=ticksvec, linestyle=[:solid :dash :dash], dpi=1200)
-                else
-                    Plot_Res = plot(2:1:kmax, plot_data,
-                        title=title_str, legend=false, lw=5, tickfontsize=14, 
-                        ylims=(0, lim_y), titlefontsize=20, xticks=ticksvec, 
-                        linestyle=[:solid :dash :dash], dpi=1200)
+                    if zaehl == length(set)
+                        Plot_Res = plot(2:1:kmax, plot_data,
+                            label=["total rate" "rate internal nodes" "rate vertices"],
+                            title=title_str, legend=:topleft, lw=5, tickfontsize=14, 
+                            ylims=(0, lim_y), titlefontsize=20, legendfontsize=16, 
+                            xticks=ticksvec, linestyle=[:solid :dash :dash], dpi=1200)
+                    else
+                        Plot_Res = plot(2:1:kmax, plot_data,
+                            title=title_str, legend=false, lw=5, tickfontsize=14, 
+                            ylims=(0, lim_y), titlefontsize=20, xticks=ticksvec, 
+                            linestyle=[:solid :dash :dash], dpi=1200)
+                    end
+                    push!(plotvec, Plot_Res)
                 end
-                push!(plotvec, Plot_Res)
             end
             
-            Plot_ges = plot(plotvec..., size=(450 * length(set), 650),
-                layout=(1, length(set)), margin=5Plots.mm, dpi=1200)
-            if !isdir(joinpath("Figures", "MG_advection_varying_parameters"))
-                mkdir(joinpath("Figures", "MG_advection_varying_parameters"))
+            if do_plots
+                Plot_ges = plot(plotvec..., size=(450 * length(set), 650),
+                    layout=(1, length(set)), margin=5Plots.mm, dpi=1200)
+                if !isdir(joinpath("Figures", "MG_advection_varying_parameters"))
+                    mkdir(joinpath("Figures", "MG_advection_varying_parameters"))
+                end
+                savefig(Plot_ges, joinpath("Figures", "MG_advection_varying_parameters", "advection_comparison_plots_$(mu)_$(savez).pdf"))
             end
-            savefig(Plot_ges, joinpath("Figures", "MG_advection_varying_parameters", "advection_comparison_plots_$(mu)_$(savez).pdf"))
         end
     end
 end
 
 
 """
-    MG_advection_Barabasi_extended(v1::Int=3, v2::Int=3)
+    MG_advection_Barabasi_extended(v1::Int=3, v2::Int=3; do_plots=false)
 
 Generates iterative convergence benchmarks evaluating standard parameters alongside varying spatial properties 
 on standard generated complex structures evaluating computation efficiency metrics internally. 
@@ -2104,11 +2170,12 @@ on standard generated complex structures evaluating computation efficiency metri
 # Arguments
 - `v1::Int`: Pre-smoothing iteration constraint limits (default: 3).
 - `v2::Int`: Post-smoothing iteration constraint limits (default: 3).
+- `do_plots::Bool`: Flag to enable or disable plotting (default: false).
 
 # Output
 - `table_data::Matrix`: Data table storing generated cycle logic metrics structurally evaluated in sequential configurations.
 """
-function MG_advection_Barabasi_extended(v1::Int=3, v2::Int=3)
+function MG_advection_Barabasi_extended(v1::Int=3, v2::Int=3; do_plots=false)
     Random.seed!(1)
     
     base_nodes = 2000

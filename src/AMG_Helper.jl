@@ -170,12 +170,12 @@ end
 
 
 """
-    _dra_tentative_adj(W::SparseMatrixCSC, r::Int, active::Vector{Int})
+    _dra_tentative(L::AbstractGraph, r::Int, active::Vector{Int})
 
 Generates a tentative aggregate centered at root node `r` based on 1-ring and 2-ring connectivity.
 
 # Arguments
-- `W::SparseMatrixCSC`: Adjacency matrix.
+- `L::AbstractGraph`: The input graph.
 - `r::Int`: The root node index.
 - `active::Vector{Int}`: Indicator vector for active nodes in the pool.
 

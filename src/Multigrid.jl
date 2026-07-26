@@ -86,15 +86,12 @@ function setup_MG_hierarchy(HEE::AbstractMatrix{<:Real}, HEV::AbstractMatrix{<:R
     curr_Scale_HEV = Scale_HEV
     
     for j in J:-1:1
-        # 1. Build restriction operators
         R_E = Rest_int_nodes(curr_Levels; index_type=index_type)
         R_V = Rest_HEV(curr_Levels; index_type=index_type)
         
-        # 2. Allocate workspace for the current level dimensions
         dim_e = size(curr_HEE, 1)
         dim_v = size(curr_HVV, 1)
         
-        # 3. Save level structure (Index j+1 corresponds to level j)
         hierarchy[j+1] = MGLevel(
             curr_HEE, curr_HEV, curr_HVV, curr_Scale_HEV, R_E,
             Vector(diag(curr_HEE)), Vector(diag(curr_HVV)), 
@@ -105,12 +102,10 @@ function setup_MG_hierarchy(HEE::AbstractMatrix{<:Real}, HEV::AbstractMatrix{<:R
             nothing # No AMG data on fine levels
         )
         
-        # 4. Galerkin projection for the next, coarser grid (Level j-1)
         HEE_m1 = R_E * curr_HEE * R_E'
         HEV_m1 = R_E * curr_HEE * curr_Scale_HEV + R_E * curr_HEV
         HVV_m1 = curr_HVV + 2 * curr_Scale_HEV' * curr_HEV + curr_Scale_HEV' * curr_HEE * curr_Scale_HEV
         
-        # 5. Updates for the next iteration
         curr_Scale_HEV = R_V * curr_Scale_HEV
         curr_Levels = max.(curr_Levels .- 1, 0)
         curr_HEE = HEE_m1
@@ -119,15 +114,12 @@ function setup_MG_hierarchy(HEE::AbstractMatrix{<:Real}, HEV::AbstractMatrix{<:R
         @info "Finished setting up level $j of the multigrid hierarchy."
     end
     
-    # Coarsest Level (J = 0) 
     dim_e = size(curr_HEE, 1)
     dim_v = size(curr_HVV, 1)
     empty_R_E = sparse(Vector{index_type}(undef, 0), Vector{index_type}(undef, 0), Float64[], 0, 0)
     
-    # Assemble the full block matrix for the coarsest geometric level
     A_coarse = [curr_HEE curr_HEV; curr_HEV' curr_HVV]
     
-    # Extract an adjacency graph for the DRA_mix partitioner and symmetrize the adjacency matrix to ensure compatibility with SimpleGraph
     Adj_coarse = Diagonal(diag(A_coarse)) - A_coarse
     Adj_sym = sparse(0.5 .* (Adj_coarse + Adj_coarse'))
     dropzeros!(Adj_sym)
@@ -140,7 +132,6 @@ function setup_MG_hierarchy(HEE::AbstractMatrix{<:Real}, HEV::AbstractMatrix{<:R
         max_levels=10
     )
     
-    # Pack the AMG components into a NamedTuple
     amg_pack = (levels=amg_levels, A_coarsest=amg_A_c, cs=amg_cs, cs_fact=amg_cs_fact)
 
     hierarchy[1] = MGLevel(
@@ -151,7 +142,6 @@ function setup_MG_hierarchy(HEE::AbstractMatrix{<:Real}, HEV::AbstractMatrix{<:R
         amg_pack
     )
     
-    @info "Finished setting up multigrid hierarchy with $J levels."
     return hierarchy
 end
 
@@ -185,7 +175,6 @@ function Rest_int_nodes(Levels::AbstractVector{Int}; index_type::Type{<:Integer}
         end
     end
     
-    # Preallocate vectors for the COO (Coordinate) format of the sparse matrix
     row_vec = Vector{index_type}(undef, nnz)
     col_vec = Vector{index_type}(undef, nnz)
     val_vec = Vector{Float64}(undef, nnz)
@@ -198,18 +187,15 @@ function Rest_int_nodes(Levels::AbstractVector{Int}; index_type::Type{<:Integer}
         if L == 0
             continue
         elseif L == 1
-            # Level 1 has no internal coarse nodes, but still contributes 1 fine node to the global column index offset.
             current_fine_col_offset += 1
         else
             n_c = 2^(L - 1) - 1
             n_f = 2^L - 1
             
-            # The restriction operator maps fine nodes to coarse nodes using the standard hat function stencil: [0.5, 1.0, 0.5].
             for k in 1:n_c
                 row = current_coarse_row + k - 1
                 base_col = current_fine_col_offset + 2k - 1
                 
-                # Assign values directly without intermediate arrays
                 row_vec[idx]   = row
                 col_vec[idx]   = base_col
                 val_vec[idx]   = 0.5
@@ -225,13 +211,11 @@ function Rest_int_nodes(Levels::AbstractVector{Int}; index_type::Type{<:Integer}
                 idx += 3
             end
             
-            # Update global offsets for the next edge
             current_coarse_row += n_c
             current_fine_col_offset += n_f
         end
     end
     
-    # Build and return the sparse restriction matrix directly
     return sparse(row_vec, col_vec, val_vec, total_coarse_nodes, total_fine_nodes)
 end
 
@@ -271,7 +255,6 @@ function Rest_HEV(Levels::AbstractVector{Int}; index_type::Type{<:Integer}=Int)
         Levels_vec = Levels[Levels.>1]
         Levels_vec0 = Levels[Levels.!=0]
         
-        # Preallocate vectors to avoid `vcat` inside the loop
         nnz = 2 * length(Levels_vec)
         val_vec = ones(nnz)
         row_vec = ones(index_type, nnz)
@@ -293,8 +276,6 @@ function Rest_HEV(Levels::AbstractVector{Int}; index_type::Type{<:Integer}=Int)
                 if Levels_vec0[j] == 1
                         plus1 += 1
                 else
-                        # Calculate values directly into preallocated indices
-                        # Using bitshift (1 << L) instead of 2^L for performance
                         col_vec[idx] = 1 + plusend + plus1
                         col_vec[idx+1] = (1 << Levels_vec0[j]) - 1 + plusend + plus1
                         
@@ -343,7 +324,6 @@ function Multigrid_Graph(HEE::AbstractMatrix{<:Real},
                 u = Matrix([HEE HEV; HEV' HVV]) \ [fe; fv]
                 ue = u[1:length(fe)]; uv = u[length(fe)+1:end]
         else
-                ## pre-smoothing
                 ue, uv = smoother_Jac(HEE, HEV, HVV, ue, uv, fe, fv, v1, w)
                 
                 Rest_Kanten = Rest_int_nodes(Levels)
@@ -420,24 +400,20 @@ function Multigrid_Graph_solve!(hierarchy::Vector{<:MGLevel}, J::Int,
         copyto!(ue, u_amg[1:n_e])
         copyto!(uv, u_amg[n_e+1:end])
     else
-        # 1. Pre-smoothing
         smoother_Jac!(lvl, ue, uv, fe, fv, v1, w)
 
         copyto!(lvl.tmp_e, fe)
         mul!(lvl.tmp_e, lvl.HEE, ue, -1.0, 1.0)
         mul!(lvl.tmp_e, lvl.HEV, uv, -1.0, 1.0) 
 
-        # d_J_v = fv - HEV' * ue - HVV * uv
         copyto!(lvl.tmp_v, fv)
         mul!(lvl.tmp_v, lvl.HEV', ue, -1.0, 1.0)
         mul!(lvl.tmp_v, lvl.HVV, uv, -1.0, 1.0) 
 
         lvl_m1 = hierarchy[J] 
         
-        # fe_m1 = R_E * d_J_e
         mul!(lvl_m1.res_e, lvl.R_E, lvl.tmp_e)
         
-        # fv_m1 = d_J_v + Scale_HEV' * d_J_e
         copyto!(lvl_m1.res_v, lvl.tmp_v)
         mul!(lvl_m1.res_v, lvl.Scale_HEV', lvl.tmp_e, 1.0, 1.0)
 
@@ -452,14 +428,11 @@ function Multigrid_Graph_solve!(hierarchy::Vector{<:MGLevel}, J::Int,
                                    v1, v2, w, my)
         end
 
-        # ue = ue + R_E' * v_tilde_e + Scale_HEV * v_tilde_v
         mul!(ue, lvl.R_E', lvl_m1.v_tilde_e, 1.0, 1.0)
         mul!(ue, lvl.Scale_HEV, lvl_m1.v_tilde_v, 1.0, 1.0)
         
-        # uv = uv + v_tilde_v
         @. uv = uv + lvl_m1.v_tilde_v
 
-        # 6. Post-smoothing
         smoother_Jac!(lvl, ue, uv, fe, fv, v2, w)
     end
 
@@ -522,18 +495,12 @@ function smoother_Jac!(lvl::MGLevel, ue::AbstractVector{<:Real}, uv::AbstractVec
                        fe::AbstractVector{<:Real}, fv::AbstractVector{<:Real}, 
                        v1::Int, omega::Float64)
     for i in 1:v1
-        # tmp_e = HEE * ue
         mul!(lvl.tmp_e, lvl.HEE, ue)
-        # tmp_e = tmp_e + HEV * uv
         mul!(lvl.tmp_e, lvl.HEV, uv, 1.0, 1.0)
-        # ue_next = ue - omega * (tmp_e - fe) ./ diag_EE
         @. lvl.ue_next = ue - omega * (lvl.tmp_e - fe) / lvl.diag_EE
 
-        # tmp_v = HEV' * ue
         mul!(lvl.tmp_v, lvl.HEV', ue)
-        # tmp_v = tmp_v + HVV * uv
         mul!(lvl.tmp_v, lvl.HVV, uv, 1.0, 1.0)
-        # uv_next = uv - omega * (tmp_v - fv) ./ diag_VV
         @. lvl.uv_next = uv - omega * (lvl.tmp_v - fv) / lvl.diag_VV
         
         copyto!(ue, lvl.ue_next)
