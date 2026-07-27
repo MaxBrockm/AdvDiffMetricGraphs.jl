@@ -6,31 +6,23 @@ on:
       - main
     tags: '*'
   pull_request:
-  # Allows manual triggering
-  workflow_dispatch:
 
 jobs:
   build:
     permissions:
-      # Needed to push to the gh-pages branch
       contents: write
       statuses: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
       - uses: julia-actions/setup-julia@v2
         with:
           version: '1'
-          
       - uses: julia-actions/cache@v2
-      
       - name: Install dependencies
-        # Instantiates the docs/ environment and develops the main package
         run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
-        
       - name: Build and deploy
         env:
-          # Automatically provided by GitHub, no setup needed from your side
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
         run: julia --project=docs/ docs/make.jl
