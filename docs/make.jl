@@ -33,8 +33,8 @@ makedocs(
     ]
 )
 
-# Deploy the documentation to the gh-pages branch of the repository
-deploydocs(
-    repo = "github.com/maxbrockm/AdvDiffMetricGraphs.jl.git",
-    devbranch = "main"
+deploydocs(;
+    repo="github.com/maxbrockm/AdvDiffMetricGraphs.jl",
+    devbranch="main",
+    push_preview=true
 )
