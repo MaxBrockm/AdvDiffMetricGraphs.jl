@@ -2,7 +2,7 @@ using Documenter
 using AdvDiffMetricGraphs 
 
 makedocs(
-    sitename = "Documentation",
+    sitename = "AdvDiffMetricGraphs.jl",
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true"
     ),
