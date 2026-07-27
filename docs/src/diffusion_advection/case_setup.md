@@ -4,7 +4,7 @@ This section covers the setup of advection-diffusion test cases on various metri
 
 ## Creating Custom Test Cases
 
-To evaluate custom graph topologies or specific advection-diffusion configurations, you can easily set up your own test case environment. The solvers in this package (such as run_MG_from_case) expect the problem definition to be structured as a standard NamedTuple.
+To evaluate custom graph topologies or specific advection-diffusion configurations, you can easily set up your own test case environment. The solvers in this package (such as run_MG_from_case) expect the problem definition to be structured as a standard `NamedTuple`.
 
 ### Required Fields
 A valid custom case requires the following fields to successfully assemble the system matrices and execute the solvers:
