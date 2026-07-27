@@ -1,7 +1,4 @@
-########################################
-# This file runs all examples from 
-# Examples.jl to check for dependency errors
-########################################
+
 include("Examples.jl")
 """
     test_runner(test_type::Symbol)

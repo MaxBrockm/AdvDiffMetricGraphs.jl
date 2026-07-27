@@ -506,11 +506,9 @@ end
 
 Compares standard Conjugate Gradient (CG) performance versus Preconditioned Conjugate Gradient (PCG) applied to the Schur complement formulation on a Barabási-Albert graph.
 """
-function PCG_example()
+function PCG_example(;vertices_vec = [1000, 1500, 2000])
 
     Pot = 0.1
-
-    vertices_vec = [1000, 1500, 2000]
     
     edges_vec = zeros(Int, length(vertices_vec))
     CG_iter = zeros(Int, length(vertices_vec))
