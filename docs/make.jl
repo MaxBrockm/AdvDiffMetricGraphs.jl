@@ -34,7 +34,7 @@ makedocs(
 )
 
 deploydocs(;
-    repo="github.com/maxbrockm/AdvDiffMetricGraphs.jl",
+    repo="github.com/MaxBrockm/AdvDiffMetricGraphs.jl",
     devbranch="master",
     push_preview=true
 )
