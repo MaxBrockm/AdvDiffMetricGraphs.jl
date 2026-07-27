@@ -1,6 +1,6 @@
 """
 Copyright Anna Weller, Universität zu Köln 2023
-Translated and adapted for package integration.
+Translated and adapted for package integration from the MeGraPDE package.
 
     plot_graph_3d(G::AbstractGraph, l_vec::AbstractVector{<:Real}, coords_v, ue::AbstractVector, uv::AbstractVector, int_nodes::AbstractVector{Int})
 
@@ -260,7 +260,7 @@ function plot_case_edge_difference(case, ue::AbstractVector, uv::AbstractVector,
     p = plot(layout=layout, legend=false, plot_title=plot_title, size=layout.*(400,300))
     
     if isnothing(case.exakte_Loesung)
-        @warn "Keine exakte Lösung im Case vorhanden."
+        @warn "No exact solution available in case. Cannot plot difference."
         return p
     end
 

@@ -17,3 +17,5 @@ The numerical framework is designed to handle complex graph topologies and is di
 ```@contents
 Depth = 2
 ```
+
+Copyright (c) 2026 Max Brockmann (University of Cologne)
