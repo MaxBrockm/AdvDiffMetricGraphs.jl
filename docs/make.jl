@@ -31,8 +31,9 @@ makedocs(
     ]
 )
 
-# Deploy documentation if in CI environment
+# Deploy the documentation to the gh-pages branch of the repository
 deploydocs(
-    repo = "github.com/MaxBrockm/AdvDiffMetricGraphs.jl.git",
-    devbranch = "main"
+    repo = "github.com/maxbrockm/AdvDiffMetricGraphs.jl.git",
+    devbranch = "main",
+    push_preview = true
 )
