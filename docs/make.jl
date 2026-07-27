@@ -1,10 +1,12 @@
 using Documenter
 using AdvDiffMetricGraphs 
 
+# Build the documentation
 makedocs(
     sitename = "AdvDiffMetricGraphs.jl",
     format = Documenter.HTML(
-        prettyurls = get(ENV, "CI", nothing) == "true"
+        # Use pretty URLs only in the CI environment to avoid broken local links
+        prettyurls = get(ENV, "CI", "false") == "true"
     ),
     modules = [AdvDiffMetricGraphs],
     checkdocs = :exports,
