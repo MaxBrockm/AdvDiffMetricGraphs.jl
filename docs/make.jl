@@ -35,6 +35,6 @@ makedocs(
 
 deploydocs(;
     repo="github.com/maxbrockm/AdvDiffMetricGraphs.jl",
-    devbranch="main",
+    devbranch="master",
     push_preview=true
 )
