@@ -1,7 +1,7 @@
 name = "AdvDiffMetricGraphs"
 uuid = "5db9d257-df2b-4bc8-b25b-4700b2107635"
-version = "1.0.0-DEV"
-authors = ["Max Brockmann"]
+version = "0.1.0"
+authors = ["Max Brockmann <maxbrockm@gmail.com>"]
 
 [deps]
 BSplines = "488c2830-172b-11e9-1591-253b8a7df96d"
@@ -24,14 +24,10 @@ DocStringExtensions = "0.9.5"
 Graphs = "1.14.0"
 ILUZero = "0.2.0"
 LaTeXStrings = "1.4.0"
-LinearAlgebra = "1.12.0"
 Plots = "1.41.6"
 PrettyTables = "3.4.2"
-Printf = "1.11.0"
 QuadGK = "2.11.3"
-Random = "1.11.0"
 Revise = "3.16.2"
-SparseArrays = "1.12.0"
 julia = "1.12"
 
 [extras]
