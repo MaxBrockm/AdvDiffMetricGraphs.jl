@@ -14,9 +14,9 @@ makedocs(
         "Home" => "index.md",
         "Diffusion-Reaction" => [
             "Diffusion-Reaction Equations on Metric Graphs" => "diffusion_reaction/diffusion_reaction.md",
-            "Multigrid Examples" => "diffusion_reaction/multigrid_examples.md",
-            "Multigrid: Do it yourself Setup" => "diffusion_reaction/multigrid_diy.md",
-            "PCG Methode" => "diffusion_reaction/pcg_method.md",
+            "Multigrid Examples & Setup" => "diffusion_reaction/multigrid_examples.md",
+            "Multigrid" => "diffusion_reaction/multigrid_diy.md",
+            "PCG Method" => "diffusion_reaction/pcg_method.md",
         ],
         "Diffusion Advection" => [
             "Advection-Diffusion Equations on Metric Graphs" => "diffusion_advection/diffusion_advection_landing.md",
