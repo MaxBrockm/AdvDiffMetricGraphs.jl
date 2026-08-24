@@ -115,7 +115,7 @@ function MG_example_stargraph(v1::Int, v2::Int; do_plots=false)
             label=["convergence rate" "rate on internal vertices" "rate on vertices"], xlabel="cycle", ylabel="convergence rate",
             title="Number of MG-cycles: $kmax", legend=:topleft, lw=3, tickfontsize=8, linestyle=[:solid :dash :dash], dpi=1200,legendfontsize=10, ylims=(0.05, 0.1))
         if !isdir(joinpath("Figures", "MG_example_stargraph"))
-            mkdir(joinpath("Figures", "MG_example_stargraph"))
+            mkpath(joinpath("Figures", "MG_example_stargraph"))
         end
         savefig(Plot_Res, joinpath("Figures", "MG_example_stargraph", "convergencestargraph.pdf"))
 
@@ -231,7 +231,7 @@ function MG_example_Barabasi(v1, v2; nodes::Int=5000, do_plots=false)
             label=["convergence rate" "rate on internal vertices" "rate on vertices"], xlabel="cycle", ylabel="convergence rate",
             title="Number of MG-cycles: $kmax", legend=:topleft, lw=5, tickfontsize=8, ylims = (0.05, 0.075), linestyle=[:solid :dash :dash], dpi=1200,legendfontsize=16)
         if !isdir(joinpath("Figures", "MG_example_Barabasi"))
-            mkdir(joinpath("Figures", "MG_example_Barabasi"))
+            mkpath(joinpath("Figures", "MG_example_Barabasi"))
         end
         savefig(Plot_Res, joinpath("Figures", "MG_example_Barabasi", "convergencebarabasi.pdf"))
     end
@@ -337,7 +337,7 @@ function MG_example_Barabasi_extended(v1::Int, v2::Int; do_plots=false)
                 legendfontsize=10
             )
         if !isdir(joinpath("Figures", "MG_example_Barabasi_extended"))
-            mkdir(joinpath("Figures", "MG_example_Barabasi_extended"))
+            mkpath(joinpath("Figures", "MG_example_Barabasi_extended"))
         end
         savefig(Plot_Res, joinpath("Figures", "MG_example_Barabasi_extended", "convergencebarabasi_extended.pdf"))
     end
@@ -492,7 +492,7 @@ function MG_examples_varying_parameters(; do_plots=false)
                 Plot_ges = plot(plotvec..., size=(450 * length(set), 650),
                     layout=(1, length(set)), margin=5Plots.mm, dpi=1200)
                 if !isdir(joinpath("Figures", "MG_examples_varying_parameters"))
-                    mkdir(joinpath("Figures", "MG_examples_varying_parameters"))
+                    mkpath(joinpath("Figures", "MG_examples_varying_parameters"))
                 end
                 savefig(Plot_ges, joinpath("Figures", "MG_examples_varying_parameters", "vergleichsplots$mu$savez.pdf"))
             end
@@ -635,7 +635,7 @@ function MG_example_AdvectionDiffusion(v1::Int=3, v2::Int=3; do_plots=false)
             title="Advection-Diffusion MG cycles: $kmax", legend=:topright, lw=3, tickfontsize=8, linestyle=[:solid :dash :dash], dpi=300) 
         
         if !isdir(joinpath("Figures", "MG_example_AdvectionDiffusion"))
-            mkdir(joinpath("Figures", "MG_example_AdvectionDiffusion"))
+            mkpath(joinpath("Figures", "MG_example_AdvectionDiffusion"))
         end
         savefig(Plot_Res, joinpath("Figures", "MG_example_AdvectionDiffusion", "convergence_advection_diffusion.pdf"))
         
@@ -678,7 +678,7 @@ function MG_example_AdvectionDiffusion(v1::Int=3, v2::Int=3; do_plots=false)
             end
         end
         plt_graph = plot_graph_3d(Γ, edgelength, coords_v, ue_split, uv, int_nodes)
-        savefig(plt_graph, joinpath("Figures", "MG_example_AdvectionDiffusion", "solution_advection_diffusion_3d.html"))
+        savefig(plt_graph, joinpath("Figures", "MG_example_AdvectionDiffusion", "solution_advection_diffusion_3d.pdf"))
     end
     return ue, uv 
 end
@@ -714,7 +714,7 @@ function run_MG_stargraph(; do_plots=false)
     if do_plots
         plt_3d = plot_case_3d(my_case, ue, uv)
         if !isdir(joinpath("Figures", "run_MG_stargraph"))
-            mkdir(joinpath("Figures", "run_MG_stargraph"))
+            mkpath(joinpath("Figures", "run_MG_stargraph"))
         end
         savefig(plt_3d, joinpath("Figures", "run_MG_stargraph", "solution_stargraph_3d.pdf"))
     end
@@ -766,7 +766,7 @@ function run_MG_DiffAdv_example(; do_plots=false)
             plt = plot_case_3d(triangle_case, ue, uv)
             title!(plt, "Numerical Solution")
             if !isdir(joinpath("Figures", "run_MG_DiffAdv_example"))
-                mkdir(joinpath("Figures", "run_MG_DiffAdv_example"))
+                mkpath(joinpath("Figures", "run_MG_DiffAdv_example"))
             end
             savefig(plt, joinpath("Figures", "run_MG_DiffAdv_example", "solution_diff_adv_3d.pdf")) 
 
@@ -791,7 +791,7 @@ function run_MG_DiffAdv_example(; do_plots=false)
 
     if do_plots
         if !isdir(joinpath("Figures", "run_MG_DiffAdv_example"))
-            mkdir(joinpath("Figures", "run_MG_DiffAdv_example"))
+            mkpath(joinpath("Figures", "run_MG_DiffAdv_example"))
         end
         pltnumvex = plot_case_num_vs_exact(triangle_case, ue, uv, "Numerical vs. Exact")
         savefig(pltnumvex, joinpath("Figures", "run_MG_DiffAdv_example", "numerical_vs_exact_diff_adv.pdf"))
@@ -870,7 +870,7 @@ function run_star_KumarLeugering(; do_plots=false)
         plt = plot_case_3d(case, ue, uv)
         title!(plt, "Numerical solution")
         if !isdir(joinpath("Figures", "run_star_KumarLeugering"))
-            mkdir(joinpath("Figures", "run_star_KumarLeugering"))
+            mkpath(joinpath("Figures", "run_star_KumarLeugering"))
         end
         savefig(plt, joinpath("Figures", "run_star_KumarLeugering", "Kumar_Leugering_solution_MG.pdf"))
     end
@@ -979,7 +979,7 @@ function plot_convergence_rate_shishkin(; do_plots=false)
         plot!(plt_conv, h_values, ref_O2, lw=2, ls=:dot, color=:gray, label="O(h^2) Reference")
         plot!(plt_conv, h_values, ref_ln_O1, lw=2, ls=:dashdot, color=:gray, label="O(h log(h⁻¹)) Reference", m=:circle)
         if !isdir(joinpath("Figures", "plot_convergence_rate_shishkin"))
-            mkdir(joinpath("Figures", "plot_convergence_rate_shishkin"))
+            mkpath(joinpath("Figures", "plot_convergence_rate_shishkin"))
         end
         savefig(plt_conv, joinpath("Figures", "plot_convergence_rate_shishkin", "Shishkin_Convergence_bakhvalov.pdf"))
     end
@@ -1010,7 +1010,7 @@ function plot_convergence_rate_SUPG(; do_plots=false)
         plt = plot_case_3d(case, ue, uv)
         title!(plt, "Numerical solution, N=6")
         if !isdir(joinpath("Figures", "plot_convergence_rate_SUPG"))
-            mkdir(joinpath("Figures", "plot_convergence_rate_SUPG"))
+            mkpath(joinpath("Figures", "plot_convergence_rate_SUPG"))
         end
         savefig(plt, joinpath("Figures", "plot_convergence_rate_SUPG", "Tiny_diff_numerical.pdf"))
     end
@@ -1083,6 +1083,7 @@ function plot_convergence_rate_SUPG(; do_plots=false)
         ref_O1 = h_values .* (errors_L2[1] / h_values[1])      
         ref_O2 = (h_values.^2) .* (errors_L2[1] / h_values[1]^2) 
         ref_O32 = (h_values .^(3/2)) .* (1.5*errors_L2[1]  / h_values[1]^(3/2)) 
+        ref_O1log = (h_values .* log.(1.0 ./ h_values)) .* (errors_L2[1] / (h_values[1] * log(1.0 / h_values[1])))
 
         plt_conv = plot(h_values, errors_L2, 
                         m=:square, lw=2, 
@@ -1097,9 +1098,10 @@ function plot_convergence_rate_SUPG(; do_plots=false)
         plot!(plt_conv, h_values, ref_O1, lw=2, ls=:dash, color=:gray, label="O(h) Reference")
         plot!(plt_conv, h_values, ref_O2, lw=2, ls=:dot, color=:gray, label="O(h^2) Reference")
         plot!(plt_conv, h_values, ref_O32, lw=2, ls=:dashdot, color=:gray, label="O(h^(3/2)) Reference", m=:circle)
+        plot!(plt_conv, h_values, ref_O1log, lw=2, ls=:dashdotdot, color=:gray, label="O(h log(1/h)) Reference")
         
         if !isdir(joinpath("Figures", "plot_convergence_rate_SUPG"))
-            mkdir(joinpath("Figures", "plot_convergence_rate_SUPG"))
+            mkpath(joinpath("Figures", "plot_convergence_rate_SUPG"))
         end
         savefig(plt_conv, joinpath("Figures", "plot_convergence_rate_SUPG", "SUPG_Convergence.pdf"))
     end
@@ -1128,7 +1130,7 @@ function plot_convergence_rate_SUPG_comparison(; do_plots=false)
         plt_init = plot_case_3d(case_init, ue_init, uv_init)
         title!(plt_init, "Numerical solution, N=6")
         if !isdir(joinpath("Figures", "plot_convergence_rate_SUPG"))
-            mkdir(joinpath("Figures", "plot_convergence_rate_SUPG"))
+            mkpath(joinpath("Figures", "plot_convergence_rate_SUPG"))
         end
         savefig(plt_init, joinpath("Figures", "plot_convergence_rate_SUPG", "Initial_Numerical_Solution_N6.pdf"))
     end
@@ -1277,7 +1279,7 @@ function plot_convergence_rate_SUPG_comparison(; do_plots=false)
         plot!(plt_conv, h_values, ref_O32, lw=2, ls=:dashdot, color=:gray, label="O(h^(3/2)) Reference", m=:utriangle)
         
         if !isdir(joinpath("Figures", "plot_convergence_rate_SUPG_comparison"))
-            mkdir(joinpath("Figures", "plot_convergence_rate_SUPG_comparison"))
+            mkpath(joinpath("Figures", "plot_convergence_rate_SUPG_comparison"))
         end
         savefig(plt_conv, joinpath("Figures", "plot_convergence_rate_SUPG_comparison", "SUPG_Convergence_Comparison.pdf"))
     end
@@ -1385,7 +1387,7 @@ function run_star_KumarLeugering_dG(; eta=10.0, p=1, do_plots=false)
             plt = plot_func(case, ue_cg_mapped, uv)
             title!(plt, "$title_str - Numerical Solution")
             if !isdir(joinpath("Figures", "run_star_KumarLeugering_dG"))
-                mkdir(joinpath("Figures", "run_star_KumarLeugering_dG"))
+                mkpath(joinpath("Figures", "run_star_KumarLeugering_dG"))
             end
             savefig(plt, joinpath("Figures", "run_star_KumarLeugering_dG", "Kumar_Leugering_$(title_str)_solution.pdf"))
 
@@ -1489,7 +1491,7 @@ function plot_convergence_rate_dG_comparison(; eta=10.0, p=1, do_plots=false)
             plt_uni = plot_case_3d(case_uni, ue_cg_mapped_uni, uv_uni)
             title!(plt_uni, "Uniform DG Solution, N=$N")
             if !isdir(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
-                mkdir(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
+                mkpath(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
             end
             savefig(plt_uni, joinpath("Figures", "plot_convergence_rate_dG_comparison", "Uniform_DG_Solution_N$N.pdf"))
 
@@ -1536,6 +1538,7 @@ function plot_convergence_rate_dG_comparison(; eta=10.0, p=1, do_plots=false)
         ref_O1  = h_values .* (anchor_err / h_values[1])               
         ref_O2  = (h_values.^2) .* (anchor_err / h_values[1]^2)        
         ref_O32 = (h_values .^(3/2)) .* (1.5 * anchor_err / h_values[1]^(3/2)) 
+        ref_O1log = (h_values .* log.(1.0 ./ h_values)) .* (anchor_err / (h_values[1] * log(1.0 / h_values[1])))
 
         plt_conv = plot(h_values, errors_H1_uniform, 
                         m=:circle, lw=2,
@@ -1554,9 +1557,10 @@ function plot_convergence_rate_dG_comparison(; eta=10.0, p=1, do_plots=false)
         plot!(plt_conv, h_values, ref_O1, lw=2, ls=:dash, color=:gray, label="O(h) Reference")
         plot!(plt_conv, h_values, ref_O2, lw=2, ls=:dot, color=:gray, label="O(h^2) Reference")
         plot!(plt_conv, h_values, ref_O32, lw=2, ls=:dashdot, color=:gray, label="O(h^(3/2)) Reference", m=:utriangle)
+        plot!(plt_conv, h_values, ref_O1log, lw=2, ls=:dashdotdot, color=:gray, label="O(h log(1/h)) Reference")
 
         if !isdir(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
-            mkdir(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
+            mkpath(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
         end
         savefig(plt_conv, joinpath("Figures", "plot_convergence_rate_dG_comparison", "DG_Shishkin_DNorm_Convergence.pdf"))
     end
@@ -1735,10 +1739,10 @@ function plot_convergence_rate_pure_dG_comparison(; eta=10.0, p=1, do_plots=fals
             end
             plt_uni = plot_case_3d(case_uni, ue_cg_mapped_uni, uv_uni)
             title!(plt_uni, "Uniform Pure DG Solution, N=$N")
-            if !isdir(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
-                mkdir(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
+            if !isdir(joinpath("Figures", "plot_convergence_rate_pure_dG_comparison"))
+                mkpath(joinpath("Figures", "plot_convergence_rate_pure_dG_comparison"))
             end
-            savefig(plt_uni, joinpath("Figures", "plot_convergence_rate_dG_comparison", "PureDG_Uniform_Solution_N$N.pdf"))
+            savefig(plt_uni, joinpath("Figures", "plot_convergence_rate_pure_dG_comparison", "PureDG_Uniform_Solution_N$N.pdf"))
         end
     end
 
@@ -1774,6 +1778,7 @@ function plot_convergence_rate_pure_dG_comparison(; eta=10.0, p=1, do_plots=fals
         ref_O1  = h_values .* (anchor_err / h_values[1])               
         ref_O2  = (h_values.^2) .* (anchor_err / h_values[1]^2)        
         ref_O32 = (h_values .^(3/2)) .* (1.5 * anchor_err / h_values[1]^(3/2)) 
+        ref_O1log = (h_values .* log.(1.0 ./ h_values)) .* (anchor_err / (h_values[1] * log(1.0 / h_values[1])))
 
         plt_conv = plot(h_values, errors_H1_uniform, 
                         m=:circle, lw=2,
@@ -1788,10 +1793,11 @@ function plot_convergence_rate_pure_dG_comparison(; eta=10.0, p=1, do_plots=fals
         plot!(plt_conv, h_values, ref_O1, lw=2, ls=:dash, color=:gray, label="O(h) Reference")
         plot!(plt_conv, h_values, ref_O2, lw=2, ls=:dot, color=:gray, label="O(h^2) Reference")
         plot!(plt_conv, h_values, ref_O32, lw=2, ls=:dashdot, color=:gray, label="O(h^(3/2)) Reference", m=:utriangle)
-        if !isdir(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
-            mkdir(joinpath("Figures", "plot_convergence_rate_dG_comparison"))
+        plot!(plt_conv, h_values, ref_O1log, lw=2, ls=:dashdotdot, color=:gray, label="O(h log(1/h)) Reference")
+        if !isdir(joinpath("Figures", "plot_convergence_rate_pure_dG_comparison"))
+            mkpath(joinpath("Figures", "plot_convergence_rate_pure_dG_comparison"))
         end
-        savefig(plt_conv, joinpath("Figures", "plot_convergence_rate_dG_comparison", "PureDG_Uniform_H1_Convergence.pdf"))
+        savefig(plt_conv, joinpath("Figures", "plot_convergence_rate_pure_dG_comparison", "PureDG_Uniform_H1_Convergence.pdf"))
     end
 
     return plt_conv, h_values, errors_H1_uniform
@@ -1904,7 +1910,7 @@ function run_star_KumarLeugering_pure_dG(; eta=10.0, p=1, do_plots=false)
             plt = plot_func(case, ue_cg_mapped, uv)
             title!(plt, "$title_str - Numerical Solution")
             if !isdir(joinpath("Figures", "run_star_KumarLeugering_pure_dG"))
-                mkdir(joinpath("Figures", "run_star_KumarLeugering_pure_dG"))
+                mkpath(joinpath("Figures", "run_star_KumarLeugering_pure_dG"))
             end
             savefig(plt, joinpath("Figures", "run_star_KumarLeugering_pure_dG", "kumarleugering_PureDG_uniform.pdf"))
 
@@ -1952,7 +1958,7 @@ function run_MG_cycle(; do_plots=false)
         plt = plot_case_3d(my_case, ue, uv)
         title!(plt, "Numerical Solution")
         if !isdir(joinpath("Figures", "run_MG_cycle"))
-            mkdir(joinpath("Figures", "run_MG_cycle"))
+            mkpath(joinpath("Figures", "run_MG_cycle"))
         end
         savefig(plt, joinpath("Figures", "run_MG_cycle", "cyclegraph_solution_diff_adv_3d.pdf"))
     end
@@ -2150,7 +2156,7 @@ function MG_advection_varying_parameters(; do_plots=false)
                 Plot_ges = plot(plotvec..., size=(450 * length(set), 650),
                     layout=(1, length(set)), margin=5Plots.mm, dpi=1200)
                 if !isdir(joinpath("Figures", "MG_advection_varying_parameters"))
-                    mkdir(joinpath("Figures", "MG_advection_varying_parameters"))
+                    mkpath(joinpath("Figures", "MG_advection_varying_parameters"))
                 end
                 savefig(Plot_ges, joinpath("Figures", "MG_advection_varying_parameters", "advection_comparison_plots_$(mu)_$(savez).pdf"))
             end

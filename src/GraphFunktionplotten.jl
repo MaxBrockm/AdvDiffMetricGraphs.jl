@@ -20,16 +20,30 @@ The function values along the edges are plotted in the z-coordinate.
 - `Plots.Plot`: The 3D plot object. The plot is automatically displayed upon calling.
 """
 function plot_graph_3d(G::AbstractGraph, l_vec::AbstractVector{<:Real}, coords_v, ue::AbstractVector, uv::AbstractVector, int_nodes::AbstractVector{Int})
-    plt = plot3d(grid=true, tickfontsize=8, dpi=1200, legend=false, legendfontsize=14) # legend=(0.3,0.3)
+    plt = plot3d(grid=true, tickfontsize=8, dpi=1200, legend=false, legendfontsize=14,
+    # --- Axis improvements ---
+    # Move axes to the outer edges of the plot
+    framestyle=:semibox, 
+    
+    # Add padding to prevent labels from being cut off at the edges
+    margin=5Plots.mm, 
+    
+    # Explicit labels are usually helpful for 3D plots
+    xlabel="x", 
+    ylabel="y", 
+    zlabel="u(x)") # legend=(0.3,0.3)
     
     n_edges = ne(G)
+
+    colors = palette([:gold, :orange, :orangered], max(n_edges, 2))
 
     for (m, e) in enumerate(edges(G))
         u_node = src(e)
         v_node = dst(e)
         xe = LinRange(coords_v[u_node][1], coords_v[v_node][1], 100)
         ye = LinRange(coords_v[u_node][2], coords_v[v_node][2], 100)
-        ze = zeros(length(xe))
+        # ze = zeros(length(xe))
+        ze = -0.025*ones(length(xe))
         
         labelstring = (m == 1) ? L"\mathcal{G}" : ""
         plot3d!(xe, ye, ze, label=labelstring, color="gray", lw=4)
@@ -45,17 +59,19 @@ function plot_graph_3d(G::AbstractGraph, l_vec::AbstractVector{<:Real}, coords_v
         
         ze = [uv[u_node], ue[m]..., uv[v_node]] 
         
+        edge_color = colors[mod1(m, length(colors))]
+        
         if n_edges < 8
             stiel_step = max(1, div(n_points, 15)) 
             
             for i in 1:stiel_step:n_points
                 plot3d!([xe[i], xe[i]], [ye[i], ye[i]], [0, ze[i]], 
-                        color="gray", lw=0.8, alpha=0.3, label="", markershape=:none)
+                        color=edge_color, lw=0.8, alpha=0.3, label="", markershape=:none)
             end
         end
         
         labelstring = (m == 1) ? L"u" : ""
-        plot3d!(xe, ye, ze, label=labelstring, color="orange", lw=6)
+        plot3d!(xe, ye, ze, label=labelstring, color=edge_color, lw=6)
         
     end
     
@@ -296,11 +312,28 @@ function plot_case_edge_difference(case, ue::AbstractVector, uv::AbstractVector,
                 push!(ERR_plot, uh - uex)
             end
         end
-
+        
+        # Use maximum() to find the largest absolute error in the array
+        max_err = maximum(abs.(ERR_plot))
+        
+        scale = :identity
+        ylabel_str = "Error"
+        
+        if max_err > 1e01
+            scale = :log10
+            # Force values strictly positive for logarithmic plotting
+            ERR_plot = max.(abs.(ERR_plot), eps(Float64))
+            ylabel_str = "|Error| (log10)"
+        end
+        
         plot!(p, S_plot, ERR_plot, lw=2, 
               xlabel="s (edge $(idx): $(src(e))->$(dst(e)))", 
-              ylabel="Error", subplot=idx)
-        hline!(p, [0.0], linestyle=:dash, color=:black, alpha=0.5, subplot=idx)
+              ylabel=ylabel_str, subplot=idx, yaxis=scale)
+        
+        # Prevent rendering a 0.0 line on a logarithmic scale
+        if scale != :log10
+            hline!(p, [0.0], linestyle=:dash, color=:black, alpha=0.5, subplot=idx)
+        end
     end
 
     display(p)

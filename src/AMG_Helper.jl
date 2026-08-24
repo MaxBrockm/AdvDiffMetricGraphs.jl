@@ -984,7 +984,7 @@ function fcg_solve(levels, A_coarsest,
         r .-= alpha .* Ap
 
         if norm(r, Inf) <= tol
-            @info "AMG-FPCG converged in $k iterations with residual norm $(norm(r, Inf))"
+            # @info "AMG-FPCG converged in $k iterations with residual norm $(norm(r, Inf))"
             break
         end
     end
