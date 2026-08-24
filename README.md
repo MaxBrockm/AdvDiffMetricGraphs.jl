@@ -1,3 +1,7 @@
+# AdvDiffMetricGraphs.jl
+
+[![Dev Docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://maxbrockm.github.io/AdvDiffMetricGraphs.jl/dev/)
+
 Welcome to AdvDiffMetricGraphs.jl, a Julia package designed for solving diffusion-reaction equations and advection-diffusion equations on metric graphs. This package provides a comprehensive suite of numerical solvers and discretization methods for partial differential equations (PDEs) on metric graphs, with a strong emphasis on robust geometric multigrid solvers for advection-dominated problems.
 A comprehensive documentation of this package is available at https://maxbrockm.github.io/AdvDiffMetricGraphs.jl/dev/
 
